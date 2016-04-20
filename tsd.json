@@ -1,0 +1,8 @@
+{
+  "version": "v4",
+  "repo": "borisyankov/DefinitelyTyped",
+  "ref": "master",
+  "path": "./src/refs",
+  "bundle": "./src/refs/bundle.ts",
+  "installed": {}
+}

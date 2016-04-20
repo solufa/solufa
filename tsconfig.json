@@ -16,7 +16,9 @@
     "files": [
         "./src/jThree.ts",
         "./src/module1.ts",
-        "./src/module2.ts"
+        "./src/module2.ts",
+        "./src/refs/bundle.ts",
+        "./typings/tsd.d.ts"
     ],
     "exclude": [
         "node_modules"
