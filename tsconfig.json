@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false
+    },
+    "buildOnSave": false,
+    "compileOnSave": false,
+    "filesGlob": [
+        "./**/*.ts",
+        "!./node_modules/**/*.ts"
+    ],
+    "files": [
+        "./src/jThree.ts",
+        "./src/module1.ts",
+        "./src/module2.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ],
+    "atom": {
+        "rewriteTsconfig": true
+    }
+}
