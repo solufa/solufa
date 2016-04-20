@@ -21,9 +21,10 @@ function bundle() {
   .pipe(gulp.dest('./static/js'));
 }
 
-gulp.task( "serve", function() {
+gulp.task( "default", function() {
   gulp.src('./static')
     .pipe(webserver({
+      host: '0.0.0.0',//スマホからIPアドレスでアクセスできる
       livereload: true,
       open: true
     }));

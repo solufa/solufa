@@ -4,7 +4,8 @@
   "description": "new jThree",
   "main": "index.js",
   "scripts": {
-    "test": "ava ./test/test.js"
+    "test": "ava ./test/test.js",
+    "start": "gulp"
   },
   "author": "",
   "license": "MIT",
