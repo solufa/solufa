@@ -13,22 +13,30 @@ j3( function() {
     view: function() {
       var geo = {
         type: "Box",
-        value: [ 3, 3, 3 ]
+        value: [ .3, .3, .3 ]
       };
 
       var mtl = {
-        type: "MeshBasic",
+        type: "MeshPhong",
         value: {
           color: "#00f",
           specular: "#fff"
         }
       };
 
-      return <scene src="33">
+      var arr = [];
+      for ( var i = 0; i < 1000; i++ ) {
+        arr.push([ Math.random() * 100 - 50,Math.random() * 100 - 50,Math.random() * 100 - 50]);
+      }
+
+      return <scene>
         <mesh geo={geo} mtl={mtl} position={[ 0, 0, -10 ]}/>
-        <obj position={[ 0, 5, 0 ]}>
+        {arr.map( v => <mesh geo={geo} mtl={mtl} position={v}/>)}
+        <obj position={[ 0, 1, 0 ]}>
           <camera id="cam"/>
+          <camera id="cam1"/>
         </obj>
+        <light type="Dir" position={[1,10,10]}/>
       </scene>;
     }
   };
@@ -38,7 +46,10 @@ j3( function() {
 
     },
     view: function() {
-      return <rdr init="{ antialias: true, preserveDrawingBuffer: false }" camera="#cam"><vp/></rdr>;
+      return <rdr init="{ antialias: true, preserveDrawingBuffer: false }">
+        <vp camera="#cam" width={.5} height={1} left={0} top={0}/>
+        <vp camera="#cam1" width={.5} height={1} left={.5} top={0}/>
+      </rdr>;
     }
   };
 

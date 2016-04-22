@@ -50247,6 +50247,11 @@ var BaseNode = function () {
             this.attrHook(name, value);
         }
     }, {
+        key: "getAttribute",
+        value: function getAttribute(name) {
+            return this.attrList[name] ? this.attrList[name].value : null;
+        }
+    }, {
         key: "appendChild",
         value: function appendChild(child) {
             if (child.parentNode) {
@@ -50393,23 +50398,47 @@ var RdrNode = function (_BaseNode_1$default2) {
     _createClass(RdrNode, [{
         key: "render",
         value: function render() {
-            if (this.cameraObject) {
-                this.coreObject.render(this.cameraObject.sceneObject, this.cameraObject);
+            this.coreObject.clear();
+            for (var i = 0; i < this.childNodes.length; i++) {
+                this.childNodes[i].render(this.coreObject);
             }
         }
     }, {
         key: "resize",
         value: function resize(e) {
             this.coreObject.setSize(e.target.innerWidth, e.target.innerHeight);
-            this.setAspect();
+            for (var i = 0; i < this.childNodes.length; i++) {
+                this.childNodes[i].setSize(this.canvas.width, this.canvas.height);
+            }
+        }
+    }]);
+
+    return RdrNode;
+}(BaseNode_1.default);
+
+var VpNode = function (_BaseNode_1$default3) {
+    _inherits(VpNode, _BaseNode_1$default3);
+
+    function VpNode() {
+        _classCallCheck(this, VpNode);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(VpNode).apply(this, arguments));
+    }
+
+    _createClass(VpNode, [{
+        key: "render",
+        value: function render(renderer) {
+            if (this.cameraObject && +this.getAttribute("width") && +this.getAttribute("height")) {
+                renderer.setViewport(+this.getAttribute("left") * this.width, +this.getAttribute("top") * this.height, +this.getAttribute("width") * this.width, +this.getAttribute("height") * this.height);
+                renderer.render(this.cameraObject.sceneObject, this.cameraObject);
+            }
         }
     }, {
-        key: "setAspect",
-        value: function setAspect() {
-            if (this.cameraObject && this.canvas) {
-                this.cameraObject.aspect = this.canvas.width / this.canvas.height;
-                this.cameraObject.updateProjectionMatrix();
-            }
+        key: "setSize",
+        value: function setSize(width, height) {
+            this.width = width;
+            this.height = height;
+            this.setAspect();
         }
     }, {
         key: "attrHook",
@@ -50425,15 +50454,27 @@ var RdrNode = function (_BaseNode_1$default2) {
                         this.setAspect();
                     }
                     break;
+                case "width":
+                case "height":
+                    this.setAspect();
+                    break;
+            }
+        }
+    }, {
+        key: "setAspect",
+        value: function setAspect() {
+            if (this.cameraObject) {
+                this.cameraObject.aspect = +this.getAttribute("width") * this.width / (+this.getAttribute("height") * this.height);
+                this.cameraObject.updateProjectionMatrix();
             }
         }
     }]);
 
-    return RdrNode;
+    return VpNode;
 }(BaseNode_1.default);
 
-var CanvasNode = function (_BaseNode_1$default3) {
-    _inherits(CanvasNode, _BaseNode_1$default3);
+var CanvasNode = function (_BaseNode_1$default4) {
+    _inherits(CanvasNode, _BaseNode_1$default4);
 
     function CanvasNode() {
         _classCallCheck(this, CanvasNode);
@@ -50448,6 +50489,7 @@ var CanvasNode = function (_BaseNode_1$default3) {
             var param = string2Json_1.default(value);
             param.canvas = childNode.canvas = this.coreObject;
             childNode.coreObject = new THREE.WebGLRenderer(param);
+            childNode.coreObject.autoClear = false;
             this.updateFn = childNode.render.bind(childNode);
             update_1.updateJ3(this.updateFn);
         }
@@ -50466,6 +50508,12 @@ var CanvasNode = function (_BaseNode_1$default3) {
     return CanvasNode;
 }(BaseNode_1.default);
 
+var lightType = {};
+for (var key in THREE) {
+    if (/.+?Light$/.test(key)) {
+        lightType[key.slice(0, 3)] = key;
+    }
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     body: BaseNode_1.default,
@@ -50475,10 +50523,10 @@ exports.default = {
         function camera(gomlDoc) {
             _classCallCheck(this, camera);
 
-            var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(camera).call(this, "camera", gomlDoc));
+            var _this5 = _possibleConstructorReturn(this, Object.getPrototypeOf(camera).call(this, "camera", gomlDoc));
 
-            _this4.coreObject = new THREE.PerspectiveCamera();
-            return _this4;
+            _this5.coreObject = new THREE.PerspectiveCamera();
+            return _this5;
         }
 
         _createClass(camera, [{
@@ -50508,16 +50556,38 @@ exports.default = {
     }(CanvasNode),
 
     head: BaseNode_1.default,
-    mesh: function (_GomlNode2) {
-        _inherits(mesh, _GomlNode2);
+    light: function (_GomlNode2) {
+        _inherits(light, _GomlNode2);
+
+        function light(gomlDoc) {
+            _classCallCheck(this, light);
+
+            return _possibleConstructorReturn(this, Object.getPrototypeOf(light).call(this, "light", gomlDoc));
+        }
+
+        _createClass(light, [{
+            key: "attrHook",
+            value: function attrHook(name, value) {
+                _get(Object.getPrototypeOf(light.prototype), "attrHook", this).call(this, name, value);
+                if (name === "type") {
+                    this.coreObject = new THREE[lightType[value]]();
+                }
+            }
+        }]);
+
+        return light;
+    }(GomlNode),
+
+    mesh: function (_GomlNode3) {
+        _inherits(mesh, _GomlNode3);
 
         function mesh(gomlDoc) {
             _classCallCheck(this, mesh);
 
-            var _this6 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
+            var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
 
-            _this6.coreObject = new THREE.Mesh();
-            return _this6;
+            _this8.coreObject = new THREE.Mesh();
+            return _this8;
         }
 
         _createClass(mesh, [{
@@ -50539,16 +50609,16 @@ exports.default = {
         return mesh;
     }(GomlNode),
 
-    obj: function (_GomlNode3) {
-        _inherits(obj, _GomlNode3);
+    obj: function (_GomlNode4) {
+        _inherits(obj, _GomlNode4);
 
         function obj(gomlDoc) {
             _classCallCheck(this, obj);
 
-            var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
+            var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
 
-            _this7.coreObject = new THREE.Object3D();
-            return _this7;
+            _this9.coreObject = new THREE.Object3D();
+            return _this9;
         }
 
         return obj;
@@ -50566,33 +50636,39 @@ exports.default = {
         return rdr;
     }(RdrNode),
 
-    scene: function (_GomlNode4) {
-        _inherits(scene, _GomlNode4);
+    scene: function (_GomlNode5) {
+        _inherits(scene, _GomlNode5);
 
         function scene(gomlDoc) {
             _classCallCheck(this, scene);
 
-            var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
+            var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
 
-            _this9.coreObject = new THREE.Scene();
-            return _this9;
+            _this11.coreObject = new THREE.Scene();
+            return _this11;
         }
 
         return scene;
     }(GomlNode),
 
     scenes: BaseNode_1.default,
-    vp: function (_RdrNode2) {
-        _inherits(vp, _RdrNode2);
+    vp: function (_VpNode) {
+        _inherits(vp, _VpNode);
 
         function vp(gomlDoc) {
             _classCallCheck(this, vp);
 
-            return _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
+            var _this12 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
+
+            _this12.setAttribute("width", 1);
+            _this12.setAttribute("height", 1);
+            _this12.setAttribute("top", 0);
+            _this12.setAttribute("left", 0);
+            return _this12;
         }
 
         return vp;
-    }(RdrNode)
+    }(VpNode)
 
 };
 

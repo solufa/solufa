@@ -55,6 +55,10 @@ class BaseNode {
     this.attrHook( name, value );
   }
 
+  public getAttribute( name: string ) {
+    return this.attrList[ name ] ? this.attrList[ name ].value : null;
+  }
+
   public appendChild( child ): void {
     if ( child.parentNode ) {
       child.parentNode.removeChild( child );

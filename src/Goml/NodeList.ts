@@ -32,24 +32,44 @@ class GomlNode extends BaseNode {
 class RdrNode extends BaseNode {
   public coreObject;
   public canvas;
-  public cameraObject;
 
   public render(): void {
-    if ( this.cameraObject ) {
-      this.coreObject.render( this.cameraObject.sceneObject, this.cameraObject );
+    this.coreObject.clear();
+    for ( let i = 0; i < this.childNodes.length; i++ ) {
+      this.childNodes[ i ].render( this.coreObject );
     }
   }
 
   public resize( e ): void {
     this.coreObject.setSize( e.target.innerWidth, e.target.innerHeight );
-    this.setAspect();
+    for ( let i = 0; i < this.childNodes.length; i++ ) {
+      this.childNodes[ i ].setSize( this.canvas.width, this.canvas.height );
+    }
   }
 
-  public setAspect(): void {
-    if ( this.cameraObject && this.canvas ) {
-      this.cameraObject.aspect = this.canvas.width / this.canvas.height;
-      this.cameraObject.updateProjectionMatrix();
+}
+
+class VpNode extends BaseNode {
+  public cameraObject;
+  private width: number;
+  private height: number;
+
+  public render( renderer ): void {
+    if ( this.cameraObject && +this.getAttribute( "width" ) && +this.getAttribute( "height") ) {
+      renderer.setViewport(
+        +this.getAttribute( "left" ) * this.width,
+        +this.getAttribute( "top" ) * this.height,
+        +this.getAttribute( "width" ) * this.width,
+        +this.getAttribute( "height") * this.height
+      );
+      renderer.render( this.cameraObject.sceneObject, this.cameraObject );
     }
+  }
+
+  public setSize( width: number, height: number ): void {
+    this.width = width;
+    this.height = height;
+    this.setAspect();
   }
 
   public attrHook( name: string, value ): void {
@@ -65,6 +85,17 @@ class RdrNode extends BaseNode {
       }
 
       break;
+    case "width":
+    case "height":
+      this.setAspect();
+      break;
+    }
+  }
+
+  private setAspect(): void {
+    if ( this.cameraObject ) {
+      this.cameraObject.aspect = +this.getAttribute( "width" ) * this.width / ( +this.getAttribute( "height" ) * this.height );
+      this.cameraObject.updateProjectionMatrix();
     }
   }
 
@@ -79,6 +110,7 @@ class CanvasNode extends BaseNode {
     let param = string2Json( value );
     param.canvas = childNode.canvas = this.coreObject;
     childNode.coreObject = new THREE.WebGLRenderer( param );
+    childNode.coreObject.autoClear = false;
 
     this.updateFn = childNode.render.bind( childNode );
     update( this.updateFn );
@@ -93,6 +125,13 @@ class CanvasNode extends BaseNode {
 
     update( this.updateFn, false );
     this.updateFn = null;
+  }
+}
+
+let lightType = {};
+for ( let key in THREE ) {
+  if ( /.+?Light$/.test( key ) ) {
+    lightType[ key.slice( 0, 3 ) ] = key;
   }
 }
 
@@ -123,6 +162,21 @@ export default {
   },
 
   head: BaseNode,
+
+  light: class extends GomlNode {
+
+    public attrHook( name: string, value ): void {
+      super.attrHook( name, value );
+
+      if ( name === "type" ) {
+        this.coreObject = new THREE[ lightType[ value ] ];
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "light", gomlDoc );
+    }
+  },
 
   mesh: class extends GomlNode {
 
@@ -178,10 +232,14 @@ export default {
 
   scenes: BaseNode,
 
-  vp: class extends RdrNode {
+  vp: class extends VpNode {
 
     constructor( gomlDoc ) {
       super( "vp", gomlDoc );
+      this.setAttribute( "width", 1 );
+      this.setAttribute( "height", 1 );
+      this.setAttribute( "top", 0 );
+      this.setAttribute( "left", 0 );
     }
   },
 };
