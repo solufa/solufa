@@ -50188,7 +50188,7 @@ var BaseNode = function () {
         this.attributes = [];
         this.attrList = {};
         this.listenerList = {};
-        this.tagName = tagName;
+        this.tagName = this.nodeName = tagName;
         this.ownerDocument = gomlDoc;
     }
 
@@ -50323,6 +50323,11 @@ var GomlDoc = function () {
         value: function createElement(tagName) {
             return createNode_1.default(tagName, this);
         }
+    }, {
+        key: "createTextNode",
+        value: function createTextNode(text) {
+            return { textContent: text };
+        }
     }]);
 
     return GomlDoc;
@@ -50331,7 +50336,7 @@ var GomlDoc = function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GomlDoc;
 
-},{"./createNode":298}],297:[function(require,module,exports){
+},{"./createNode":299}],297:[function(require,module,exports){
 "use strict";
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
@@ -50349,6 +50354,7 @@ var BaseNode_1 = require("./BaseNode");
 var errorMessage_1 = require("../utils/errorMessage");
 var string2Json_1 = require("../utils/string2Json");
 var update_1 = require("../update");
+var createCanvas_1 = require("./createCanvas");
 
 var GomlNode = function (_BaseNode_1$default) {
     _inherits(GomlNode, _BaseNode_1$default);
@@ -50396,6 +50402,34 @@ var RdrNode = function (_BaseNode_1$default2) {
     }
 
     _createClass(RdrNode, [{
+        key: "attrHook",
+        value: function attrHook(name, value) {
+            if (name === "init") {
+                if (this.coreObject) {
+                    this.coreObject.resetGLState();
+                    this.coreObject.dispose();
+                    this.canvas = null;
+                    this.coreObject = null;
+                    update_1.updateJ3(this.updateFn, false);
+                    this.updateFn = null;
+                }
+                value = string2Json_1.default(value);
+                var frame = document.querySelector(value.frame);
+                if (!frame) {
+                    errorMessage_1.default('HTML element can not be found by the selector of "' + value.frame + '".');
+                    return;
+                }
+                var canvasData = createCanvas_1.default();
+                frame.appendChild(canvasData.container);
+                this.canvas = value.canvas = canvasData.canvas;
+                window.frames[window.frames.length - 1].addEventListener("resize", this.resize.bind(this), false);
+                this.coreObject = new THREE.WebGLRenderer(value);
+                this.coreObject.autoClear = false;
+                this.updateFn = this.render.bind(this);
+                update_1.updateJ3(this.updateFn);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             this.coreObject.clear();
@@ -50473,47 +50507,14 @@ var VpNode = function (_BaseNode_1$default3) {
     return VpNode;
 }(BaseNode_1.default);
 
-var CanvasNode = function (_BaseNode_1$default4) {
-    _inherits(CanvasNode, _BaseNode_1$default4);
-
-    function CanvasNode() {
-        _classCallCheck(this, CanvasNode);
-
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(CanvasNode).apply(this, arguments));
-    }
-
-    _createClass(CanvasNode, [{
-        key: "appendHook",
-        value: function appendHook(childNode) {
-            var value = (childNode.attrList.init || { value: { clearColor: "#fff" } }).value;
-            var param = string2Json_1.default(value);
-            param.canvas = childNode.canvas = this.coreObject;
-            childNode.coreObject = new THREE.WebGLRenderer(param);
-            childNode.coreObject.autoClear = false;
-            this.updateFn = childNode.render.bind(childNode);
-            update_1.updateJ3(this.updateFn);
-        }
-    }, {
-        key: "removeHook",
-        value: function removeHook(childNode) {
-            childNode.coreObject.resetGLState();
-            childNode.coreObject.dispose();
-            childNode.canvas = null;
-            childNode.coreObject = null;
-            update_1.updateJ3(this.updateFn, false);
-            this.updateFn = null;
-        }
-    }]);
-
-    return CanvasNode;
-}(BaseNode_1.default);
-
 var lightType = {};
 for (var key in THREE) {
     if (/.+?Light$/.test(key)) {
         lightType[key.slice(0, 3)] = key;
     }
 }
+var geoPool = [];
+var mtlPool = [];
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     body: BaseNode_1.default,
@@ -50523,10 +50524,10 @@ exports.default = {
         function camera(gomlDoc) {
             _classCallCheck(this, camera);
 
-            var _this5 = _possibleConstructorReturn(this, Object.getPrototypeOf(camera).call(this, "camera", gomlDoc));
+            var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(camera).call(this, "camera", gomlDoc));
 
-            _this5.coreObject = new THREE.PerspectiveCamera();
-            return _this5;
+            _this4.coreObject = new THREE.PerspectiveCamera();
+            return _this4;
         }
 
         _createClass(camera, [{
@@ -50542,18 +50543,6 @@ exports.default = {
 
         return camera;
     }(GomlNode),
-
-    canvas: function (_CanvasNode) {
-        _inherits(canvas, _CanvasNode);
-
-        function canvas(gomlDoc) {
-            _classCallCheck(this, canvas);
-
-            return _possibleConstructorReturn(this, Object.getPrototypeOf(canvas).call(this, "canvas", gomlDoc));
-        }
-
-        return canvas;
-    }(CanvasNode),
 
     head: BaseNode_1.default,
     light: function (_GomlNode2) {
@@ -50584,10 +50573,10 @@ exports.default = {
         function mesh(gomlDoc) {
             _classCallCheck(this, mesh);
 
-            var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
+            var _this6 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
 
-            _this8.coreObject = new THREE.Mesh();
-            return _this8;
+            _this6.coreObject = new THREE.Mesh();
+            return _this6;
         }
 
         _createClass(mesh, [{
@@ -50597,10 +50586,22 @@ exports.default = {
                 _get(Object.getPrototypeOf(mesh.prototype), "attrHook", this).call(this, name, value);
                 switch (name) {
                     case "geo":
-                        this.coreObject.geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
+                        if (value.cacheId !== undefined) {
+                            this.coreObject.geometry = geoPool[value.cacheId];
+                        } else {
+                            value.cacheId = geoPool.length;
+                            this.coreObject.geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
+                            geoPool.push(this.coreObject.geometry);
+                        }
                         break;
                     case "mtl":
-                        this.coreObject.material = new THREE[value.type + "Material"](value.value);
+                        if (value.cacheId !== undefined) {
+                            this.coreObject.material = mtlPool[value.cacheId];
+                        } else {
+                            value.cacheId = mtlPool.length;
+                            this.coreObject.material = new THREE[value.type + "Material"](value.value);
+                            mtlPool.push(this.coreObject.material);
+                        }
                         break;
                 }
             }
@@ -50615,10 +50616,10 @@ exports.default = {
         function obj(gomlDoc) {
             _classCallCheck(this, obj);
 
-            var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
+            var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
 
-            _this9.coreObject = new THREE.Object3D();
-            return _this9;
+            _this7.coreObject = new THREE.Object3D();
+            return _this7;
         }
 
         return obj;
@@ -50642,10 +50643,10 @@ exports.default = {
         function scene(gomlDoc) {
             _classCallCheck(this, scene);
 
-            var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
+            var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
 
-            _this11.coreObject = new THREE.Scene();
-            return _this11;
+            _this9.coreObject = new THREE.Scene();
+            return _this9;
         }
 
         return scene;
@@ -50658,13 +50659,13 @@ exports.default = {
         function vp(gomlDoc) {
             _classCallCheck(this, vp);
 
-            var _this12 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
+            var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
 
-            _this12.setAttribute("width", 1);
-            _this12.setAttribute("height", 1);
-            _this12.setAttribute("top", 0);
-            _this12.setAttribute("left", 0);
-            return _this12;
+            _this10.setAttribute("width", 1);
+            _this10.setAttribute("height", 1);
+            _this10.setAttribute("top", 0);
+            _this10.setAttribute("left", 0);
+            return _this10;
         }
 
         return vp;
@@ -50672,7 +50673,32 @@ exports.default = {
 
 };
 
-},{"../update":302,"../utils/errorMessage":303,"../utils/string2Json":304,"./BaseNode":295,"three":294}],298:[function(require,module,exports){
+},{"../update":302,"../utils/errorMessage":303,"../utils/string2Json":304,"./BaseNode":295,"./createCanvas":298,"three":294}],298:[function(require,module,exports){
+"use strict";
+
+function createCanvas() {
+    var container = document.createElement("div");
+    container.style.position = "relative";
+    container.style.height = "100%";
+    var resizeIframe = document.createElement("iframe");
+    resizeIframe.style.width = "100%";
+    resizeIframe.style.height = "100%";
+    resizeIframe.style.position = "absolute";
+    resizeIframe.style.zIndex = "-1";
+    resizeIframe.style.top = "0";
+    resizeIframe.style.left = "0";
+    resizeIframe.style.verticalAlign = "bottom";
+    resizeIframe.setAttribute("frameborder", "0");
+    container.appendChild(resizeIframe);
+    var canvas = document.createElement("canvas");
+    container.appendChild(canvas);
+    return { container: container, canvas: canvas };
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = createCanvas;
+;
+
+},{}],299:[function(require,module,exports){
 "use strict";
 
 var NodeList_1 = require("./NodeList");
@@ -50689,103 +50715,59 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 ;
 
-},{"../utils/errorMessage":303,"./NodeList":297}],299:[function(require,module,exports){
+},{"../utils/errorMessage":303,"./NodeList":297}],300:[function(require,module,exports){
 "use strict";
 
 require("babel-polyfill");
 var m = require("mithril");
 var three = require("three");
 var GomlDoc_1 = require("./Goml/GomlDoc");
-var setCanvas_1 = require("./setCanvas");
 var update_1 = require("./update");
-var canvas = document.createElement("canvas");
-var hasGl = window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
-var waitLoadFn = [];
-function jThree(callback, error) {
-    if (!hasGl) {
-        error();
-    } else if (document.readyState === "loading") {
-        waitLoadFn.push(callback);
-    } else {
-        callback(m);
+var JthreeInit = function JthreeInit() {
+    var canvas = document.createElement("canvas");
+    var hasGl = window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
+    var waitLoadFn = [];
+    function jThree(callback, error) {
+        if (!hasGl) {
+            error();
+        } else if (document.readyState === "loading") {
+            waitLoadFn.push(callback);
+        } else {
+            callback(m);
+        }
     }
-}
-if (document.readyState === "loading") {
-    window.addEventListener("DOMContentLoaded", function () {
-        waitLoadFn.forEach(function (fn) {
-            fn(m);
-        });
-        waitLoadFn = null;
-    }, false);
-}
-jThree.m = m;
-jThree.THREE = three;
-jThree.update = update_1.updateJ3;
-var JthreeInit = {
-    init: function init() {
-        var doc = new GomlDoc_1.default();
-        m.deps({
-            cancelAnimationFrame: window.cancelAnimationFrame,
-            document: doc,
-            location: window.location,
-            requestAnimationFrame: window.requestAnimationFrame
-        });
-        m.render = setCanvas_1.default(m.render, doc);
-        window.m = m;
-        window.jThree = window.j3 = jThree;
+    if (document.readyState === "loading") {
+        window.addEventListener("DOMContentLoaded", function () {
+            waitLoadFn.forEach(function (fn) {
+                fn(m);
+            });
+            waitLoadFn = null;
+        }, false);
     }
+    var doc = new GomlDoc_1.default();
+    jThree.m = m;
+    jThree.THREE = three;
+    jThree.update = update_1.updateJ3;
+    jThree.document = doc;
+    m.deps({
+        cancelAnimationFrame: window.cancelAnimationFrame,
+        document: doc,
+        location: window.location,
+        requestAnimationFrame: window.requestAnimationFrame
+    });
+    window.m = m;
+    window.jThree = window.j3 = jThree;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = JthreeInit;
 
-},{"./Goml/GomlDoc":296,"./setCanvas":301,"./update":302,"babel-polyfill":1,"mithril":292,"three":294}],300:[function(require,module,exports){
+},{"./Goml/GomlDoc":296,"./update":302,"babel-polyfill":1,"mithril":292,"three":294}],301:[function(require,module,exports){
 "use strict";
 
 var Init_1 = require("./Init");
-Init_1.default.init();
+Init_1.default();
 
-},{"./Init":299}],301:[function(require,module,exports){
-"use strict";
-
-var createNode_1 = require("./Goml/createNode");
-var roots = [];
-function setCanvas(render, gomlDoc) {
-    return function (root, component) {
-        if (component) {
-            var index = roots.indexOf(root);
-            if (index === -1) {
-                var container = document.createElement("div");
-                container.style.position = "relative";
-                container.style.height = "100%";
-                var resizeIframe = document.createElement("iframe");
-                resizeIframe.style.width = "100%";
-                resizeIframe.style.height = "100%";
-                resizeIframe.style.position = "absolute";
-                resizeIframe.style.zIndex = "-1";
-                resizeIframe.style.top = "0";
-                resizeIframe.style.left = "0";
-                resizeIframe.style.verticalAlign = "bottom";
-                resizeIframe.setAttribute("frameborder", "0");
-                container.appendChild(resizeIframe);
-                var canvas = document.createElement("canvas");
-                container.appendChild(canvas);
-                root.appendChild(container);
-                roots.push(root);
-                var gomlCanvas = createNode_1.default("canvas", gomlDoc);
-                gomlCanvas.coreObject = canvas;
-                gomlDoc.head.appendChild(gomlCanvas);
-                render(gomlCanvas, component);
-                window.frames[window.frames.length - 1].addEventListener("resize", gomlCanvas.childNodes[0].resize.bind(gomlCanvas.childNodes[0]), false);
-            }
-        } else {
-            render(gomlDoc.body, root);
-        }
-    };
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = setCanvas;
-
-},{"./Goml/createNode":298}],302:[function(require,module,exports){
+},{"./Init":300}],302:[function(require,module,exports){
 "use strict";
 
 var updateGomlList = [];
@@ -50858,4 +50840,4 @@ exports.default = function (value) {
     }
 };
 
-},{"./errorMessage":303,"json5":291}]},{},[300]);
+},{"./errorMessage":303,"json5":291}]},{},[301]);

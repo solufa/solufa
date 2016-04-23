@@ -6,6 +6,12 @@ document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livere
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/msx;harmony=true">
 j3( function() {
+
+  setTimeout(function() {return;
+    m.startComputation();
+    m.endComputation();
+  },1000);
+
   var App = {
     controller: function() {
 
@@ -25,14 +31,13 @@ j3( function() {
       };
 
       var arr = [];
-      for ( var i = 0; i < 1000; i++ ) {
+      for ( var i = 0; i < 10000; i++ ) {
         arr.push([ Math.random() * 100 - 50,Math.random() * 100 - 50,Math.random() * 100 - 50]);
       }
 
       return <scene>
-        <mesh geo={geo} mtl={mtl} position={[ 0, 0, -10 ]}/>
         {arr.map( v => <mesh geo={geo} mtl={mtl} position={v}/>)}
-        <obj position={[ 0, 1, 0 ]}>
+        <obj position={[ 0, 0, 0 ]}>
           <camera id="cam"/>
           <camera id="cam1"/>
         </obj>
@@ -41,20 +46,12 @@ j3( function() {
     }
   };
 
-  var Rdr = {
-    controller: function() {
 
-    },
-    view: function() {
-      return <rdr init="{ antialias: true, preserveDrawingBuffer: false }">
-        <vp camera="#cam" width={.5} height={1} left={0} top={0}/>
-        <vp camera="#cam1" width={.5} height={1} left={.5} top={0}/>
-      </rdr>;
-    }
-  };
-
-  m.render( App );
-  m.render( document.getElementById( "jthree" ), Rdr );
+  m.render( j3.document.body, App );
+  m.render( j3.document.head, <rdr init={{ frame: "#jthree", antialias: true, preserveDrawingBuffer: false }}>
+    <vp camera="#cam" width={.5} height={1} left={0} top={0}/>
+    <vp camera="#cam1" width={.5} height={1} left={.5} top={0}/>
+  </rdr> );
 });
 </script>
 

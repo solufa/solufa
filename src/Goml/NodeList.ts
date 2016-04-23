@@ -3,6 +3,7 @@ import BaseNode from "./BaseNode";
 import errorMessage from "../utils/errorMessage";
 import string2Json from "../utils/string2Json";
 import { updateJ3 as update } from "../update";
+import createCanvas from "./createCanvas";
 
 class GomlNode extends BaseNode {
   public coreObject;
@@ -32,6 +33,41 @@ class GomlNode extends BaseNode {
 class RdrNode extends BaseNode {
   public coreObject;
   public canvas;
+  private updateFn;
+
+  public attrHook( name: string, value ) {
+    if ( name === "init" ) {
+
+      if ( this.coreObject ) {
+        this.coreObject.resetGLState();
+        this.coreObject.dispose();
+        this.canvas = null;
+        this.coreObject = null;
+
+        update( this.updateFn, false );
+        this.updateFn = null;
+      }
+
+      value = string2Json( value );
+
+      const frame = document.querySelector( value.frame );
+      if ( !frame ) {
+        errorMessage( 'HTML element can not be found by the selector of "' + value.frame + '".' );
+        return;
+      }
+
+      const canvasData = createCanvas();
+      frame.appendChild( canvasData.container );
+      this.canvas = value.canvas = canvasData.canvas;
+      window.frames[ window.frames.length - 1 ].addEventListener( "resize", this.resize.bind( this ), false );
+
+      this.coreObject = new THREE.WebGLRenderer( value );
+      this.coreObject.autoClear = false;
+
+      this.updateFn = this.render.bind( this );
+      update( this.updateFn );
+    }
+  }
 
   public render(): void {
     this.coreObject.clear();
@@ -92,7 +128,7 @@ class VpNode extends BaseNode {
     }
   }
 
-  private setAspect(): void {
+  public setAspect(): void {
     if ( this.cameraObject ) {
       this.cameraObject.aspect = +this.getAttribute( "width" ) * this.width / ( +this.getAttribute( "height" ) * this.height );
       this.cameraObject.updateProjectionMatrix();
@@ -101,39 +137,15 @@ class VpNode extends BaseNode {
 
 }
 
-class CanvasNode extends BaseNode {
-  public coreObject;
-  private updateFn;
-
-  public appendHook( childNode ) {
-    const value = ( childNode.attrList.init || { value: { clearColor: "#fff" } } ).value;
-    let param = string2Json( value );
-    param.canvas = childNode.canvas = this.coreObject;
-    childNode.coreObject = new THREE.WebGLRenderer( param );
-    childNode.coreObject.autoClear = false;
-
-    this.updateFn = childNode.render.bind( childNode );
-    update( this.updateFn );
-
-  }
-
-  public removeHook( childNode ) {
-    childNode.coreObject.resetGLState();
-    childNode.coreObject.dispose();
-    childNode.canvas = null;
-    childNode.coreObject = null;
-
-    update( this.updateFn, false );
-    this.updateFn = null;
-  }
-}
-
 let lightType = {};
 for ( let key in THREE ) {
   if ( /.+?Light$/.test( key ) ) {
     lightType[ key.slice( 0, 3 ) ] = key;
   }
 }
+
+const geoPool = [];
+const mtlPool = [];
 
 export default {
   body: BaseNode,
@@ -151,13 +163,6 @@ export default {
     constructor( gomlDoc ) {
       super( "camera", gomlDoc );
       this.coreObject = new THREE.PerspectiveCamera;
-    }
-  },
-
-  canvas: class extends CanvasNode {
-
-    constructor( gomlDoc ) {
-      super( "canvas", gomlDoc );
     }
   },
 
@@ -186,17 +191,29 @@ export default {
 
       switch ( name ) {
       case "geo":
-        this.coreObject.geometry = new THREE[ value.type + "Geometry" ](
-          value.value[ 0 ],
-          value.value[ 1 ],
-          value.value[ 2 ],
-          value.value[ 3 ],
-          value.value[ 4 ],
-          value.value[ 5 ] );
+        if ( value.cacheId !== undefined ) {
+          this.coreObject.geometry = geoPool[ value.cacheId ];
+        } else {
+          value.cacheId = geoPool.length;
+          this.coreObject.geometry = new THREE[ value.type + "Geometry" ](
+            value.value[ 0 ],
+            value.value[ 1 ],
+            value.value[ 2 ],
+            value.value[ 3 ],
+            value.value[ 4 ],
+            value.value[ 5 ] );
+          geoPool.push( this.coreObject.geometry );
+        }
         break;
 
       case "mtl":
-        this.coreObject.material = new THREE[ value.type + "Material" ]( value.value );
+        if ( value.cacheId !== undefined ) {
+          this.coreObject.material = mtlPool[ value.cacheId ];
+        } else {
+          value.cacheId = mtlPool.length;
+          this.coreObject.material = new THREE[ value.type + "Material" ]( value.value );
+          mtlPool.push( this.coreObject.material );
+        }
         break;
       }
     }

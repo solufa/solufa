@@ -1,2 +1,2 @@
 import Init from "./Init";
-Init.init();
+Init();

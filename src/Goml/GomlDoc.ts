@@ -8,6 +8,10 @@ class GomlDoc {
     return createNode( tagName, this );
   }
 
+  public createTextNode( text: string ) {
+    return { textContent: text };
+  }
+
   constructor () {
     this.body = createNode( "body", this );
     this.body.parentNode = this;

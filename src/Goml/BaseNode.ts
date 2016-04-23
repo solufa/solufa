@@ -6,6 +6,7 @@ class BaseNode {
   public attributes = [];
   public parentNode;
   public tagName: string;
+  public nodeName: string;
   public ownerDocument;
   public id: string;
 
@@ -98,7 +99,7 @@ class BaseNode {
   }
 
   constructor( tagName: string, gomlDoc ) {
-    this.tagName = tagName;
+    this.tagName = this.nodeName = tagName;
     this.ownerDocument = gomlDoc;
   }
 }
