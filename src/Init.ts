@@ -38,6 +38,7 @@ const JthreeInit = () => {
   const doc = new GomlDoc;
 
   (<any>jThree).m = m;
+  (<any>jThree).s = JSON.stringify; // Deepに変更監視をしたい仮想DOMの値に使う
   (<any>jThree).THREE = three;
   (<any>jThree).update = update;
   (<any>jThree).document = doc;

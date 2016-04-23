@@ -50368,12 +50368,16 @@ var GomlNode = function (_BaseNode_1$default) {
     _createClass(GomlNode, [{
         key: "appendHook",
         value: function appendHook(childNode) {
-            this.coreObject.add(childNode.coreObject);
+            if (childNode.coreObject instanceof THREE.Object3D) {
+                this.coreObject.add(childNode.coreObject);
+            }
         }
     }, {
         key: "removeHook",
         value: function removeHook(childNode) {
-            this.coreObject.remove(childNode.coreObject);
+            if (childNode.coreObject instanceof THREE.Object3D) {
+                this.coreObject.remove(childNode.coreObject);
+            }
         }
     }, {
         key: "attrHook",
@@ -50384,6 +50388,9 @@ var GomlNode = function (_BaseNode_1$default) {
             switch (name) {
                 case "position":
                     THREE.Vector3.prototype.set.apply(this.coreObject.position, value);
+                    break;
+                case "positionY":
+                    this.coreObject.position.y = +value;
                     break;
             }
         }
@@ -50746,6 +50753,7 @@ var JthreeInit = function JthreeInit() {
     }
     var doc = new GomlDoc_1.default();
     jThree.m = m;
+    jThree.s = JSON.stringify;
     jThree.THREE = three;
     jThree.update = update_1.updateJ3;
     jThree.document = doc;

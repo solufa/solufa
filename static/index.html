@@ -6,52 +6,56 @@ document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livere
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/msx;harmony=true">
 j3( function() {
-
-  setTimeout(function() {return;
-    m.startComputation();
-    m.endComputation();
-  },1000);
+var pos = [0,0,0];
+var fn = function() {
+	//pos[1]+=.005;m.redraw();
+};
+	setInterval( fn,50);
 
   var App = {
-    controller: function() {
-
-    },
-    view: function() {
-      var geo = {
+		vm: {
+			geo: {
         type: "Box",
         value: [ .3, .3, .3 ]
-      };
-
-      var mtl = {
+      },
+			mtl: {
         type: "MeshPhong",
         value: {
           color: "#00f",
           specular: "#fff"
         }
-      };
-
-      var arr = [];
-      for ( var i = 0; i < 10000; i++ ) {
-        arr.push([ Math.random() * 100 - 50,Math.random() * 100 - 50,Math.random() * 100 - 50]);
-      }
+      },
+			positions: [],
+			init: function() {
+	      for ( var i = 0; i < 1000; i++ ) {
+	        this.positions.push([ Math.random() * 100 - 50,Math.random() * 100 - 50,Math.random() * 100 - 50]);
+	      }
+			}
+		},
+    controller: function() {
+			App.vm.init();
+    },
+    view: function() {
+      var vm = App.vm;
 
       return <scene>
-        {arr.map( v => <mesh geo={geo} mtl={mtl} position={v}/>)}
-        <obj position={[ 0, 0, 0 ]}>
+				<mesh geo={vm.geo} mtl={vm.mtl} position={j3.s([0,0,-3])}/>
+        { vm.positions.map( v => <mesh geo={vm.geo} mtl={vm.mtl} position={v}/>)}
+        <obj position={j3.s(pos)}>
           <camera id="cam"/>
           <camera id="cam1"/>
         </obj>
-        <light type="Dir" position={[1,10,10]}/>
+        <light type="Dir" position={j3.s([1,10,10])}/>
       </scene>;
     }
   };
 
 
-  m.render( j3.document.body, App );
+  m.mount( j3.document.body, App );
   m.render( j3.document.head, <rdr init={{ frame: "#jthree", antialias: true, preserveDrawingBuffer: false }}>
-    <vp camera="#cam" width={.5} height={1} left={0} top={0}/>
-    <vp camera="#cam1" width={.5} height={1} left={.5} top={0}/>
-  </rdr> );
+		<vp camera="#cam" width={.5} height={1} left={0} top={0}/>
+		<vp camera="#cam1" width={.5} height={1} left={.5} top={0}/>
+	</rdr> );
 });
 </script>
 

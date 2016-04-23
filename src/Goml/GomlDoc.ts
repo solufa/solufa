@@ -8,7 +8,7 @@ class GomlDoc {
     return createNode( tagName, this );
   }
 
-  public createTextNode( text: string ) {
+  public createTextNode( text: string ) {// m.redrawとかでMithrilがtextNodeを生成することがある
     return { textContent: text };
   }
 

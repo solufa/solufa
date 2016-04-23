@@ -9,12 +9,16 @@ class GomlNode extends BaseNode {
   public coreObject;
   public sceneObject; // use only camera
 
-  public appendHook( childNode ) {
-    this.coreObject.add( childNode.coreObject );
+  public appendHook( childNode ) {// m.redrawとかでMithrilがtextNodeを生成することがある
+    if ( childNode.coreObject instanceof THREE.Object3D ) {
+      this.coreObject.add( childNode.coreObject );
+    }
   }
 
   public removeHook( childNode ) {
-    this.coreObject.remove( childNode.coreObject );
+    if ( childNode.coreObject instanceof THREE.Object3D ) {
+      this.coreObject.remove( childNode.coreObject );
+    }
   }
 
   public attrHook( name: string, value ) {
@@ -25,6 +29,9 @@ class GomlNode extends BaseNode {
     switch ( name ) {
     case "position":
       THREE.Vector3.prototype.set.apply( this.coreObject.position, value );
+      break;
+    case "positionY":
+      this.coreObject.position.y = +value;
       break;
     }
   }
