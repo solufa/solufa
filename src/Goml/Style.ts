@@ -65,7 +65,7 @@ class Style {
     return toArr( this.target.coreObject.scale );
   }
   set scale( array ) {
-    setVec( this.target.coreObject.scale, array );
+    setVec( this.target.coreObject.scale, typeof array === "number" ? [ array, array, array ] : array );
   }
   get scaleX(): number {
     return this.target.coreObject.scale.x;

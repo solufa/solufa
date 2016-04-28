@@ -16,6 +16,7 @@
     "files": [
         "./src/Goml/BaseNode.ts",
         "./src/Goml/createCanvas.ts",
+        "./src/Goml/createMaterial.ts",
         "./src/Goml/createNode.ts",
         "./src/Goml/GomlDoc.ts",
         "./src/Goml/NodeList.ts",
@@ -28,8 +29,8 @@
         "./src/refs/mithril/mithril.d.ts",
         "./src/refs/threejs/three.d.ts",
         "./src/update.ts",
+        "./src/utils/_string2Json.ts",
         "./src/utils/errorMessage.ts",
-        "./src/utils/string2Json.ts",
         "./src/utils/traverse.ts"
     ],
     "exclude": [

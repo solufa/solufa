@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import BaseNode from "./BaseNode";
 import errorMessage from "../utils/errorMessage";
-import string2Json from "../utils/string2Json";
 import { updateJ3 as update } from "../update";
 import createCanvas from "./createCanvas";
+import createMaterial from "./createMaterial";
 
 class GomlNode extends BaseNode {
   public coreObject;
@@ -21,14 +21,6 @@ class GomlNode extends BaseNode {
     }
   }
 
-  public attrHook( name: string, value ) {
-    /*if ( typeof value === "string" && /^(\{|\[)/.test( value ) ) {
-      value = string2Json( value );
-    }
-
-    switch ( name ) {
-    }*/
-  }
 }
 
 class RdrNode extends BaseNode {
@@ -48,8 +40,6 @@ class RdrNode extends BaseNode {
         update( this.updateFn, false );
         this.updateFn = null;
       }
-
-      value = string2Json( value );
 
       const frame = document.querySelector( value.frame );
       if ( !frame ) {
@@ -187,7 +177,6 @@ export default {
   mesh: class extends GomlNode {
 
     public attrHook( name: string, value ): void {
-      value = string2Json( value );
       super.attrHook( name, value );
 
       switch ( name ) {
@@ -221,8 +210,7 @@ export default {
           this.coreObject.material = mtlPool[ value.cacheId ];
         } else {
           value.cacheId = mtlPool.length;
-          this.coreObject.material = new THREE[ value.type + "Material" ]( value.value );
-          mtlPool.push( this.coreObject.material );
+          mtlPool.push( this.coreObject.material = createMaterial( value ) );
         }
         break;
       }
@@ -258,6 +246,29 @@ export default {
   },
 
   scenes: BaseNode,
+
+  sprite: class extends GomlNode {
+
+    public attrHook( name: string, value ): void {
+      super.attrHook( name, value );
+
+      switch ( name ) {
+      case "mtl":
+        if ( value.cacheId !== undefined ) {
+          this.coreObject.material = mtlPool[ value.cacheId ];
+        } else {
+          value.cacheId = mtlPool.length;
+          mtlPool.push( this.coreObject.material = createMaterial( value ) );
+        }
+        break;
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "sprite", gomlDoc );
+      this.coreObject = new THREE.Sprite;
+    }
+  },
 
   vp: class extends VpNode {
 

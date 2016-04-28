@@ -1,3 +1,5 @@
+// 使わない？
+
 import * as JSON5 from "json5";
 import errorMessage from "./errorMessage";
 

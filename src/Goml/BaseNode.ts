@@ -1,6 +1,6 @@
 import Style from "./Style";
 
-const idList = []; // todo: appendとremoveの反映
+const idList = []; // Todo: appendとremoveの反映
 
 class BaseNode {
 
