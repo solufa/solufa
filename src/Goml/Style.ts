@@ -27,6 +27,10 @@ function applyOpacity( elem, opacity ) {
   return elem.style.opacity * opacity;
 }
 
+function cToObj( color ) {
+  return { b: color.b, g: color.g, r: color.r };
+}
+
 class Style {
   private target;
   private _lookAt;
@@ -202,10 +206,34 @@ class Style {
   get opacity(): number {
     return this._opacity;
   }
-
   set opacity( opacity: number ) {
     this._opacity = opacity;
     traverse( this.target, applyOpacity, opacity );
+  }
+
+  get color() {
+    return cToObj( this.target.coreObject.material.color );
+  }
+  set color( value ) {
+    this.target.coreObject.material.color.set( value );
+  }
+  get colorR(): number {
+    return this.target.coreObject.material.color.r;
+  }
+  set colorR( value ) {
+    this.target.coreObject.material.color.r = value;
+  }
+  get colorG(): number {
+    return this.target.coreObject.material.color.g;
+  }
+  set colorG( value ) {
+    this.target.coreObject.material.color.g = value;
+  }
+  get colorB(): number {
+    return this.target.coreObject.material.color.b;
+  }
+  set colorB( value ) {
+    this.target.coreObject.material.color.b = value;
   }
 
   constructor( target ) {

@@ -50713,6 +50713,9 @@ function applyOpacity(elem, opacity) {
     }
     return elem.style.opacity * opacity;
 }
+function cToObj(color) {
+    return { b: color.b, g: color.g, r: color.r };
+}
 
 var Style = function () {
     function Style(target) {
@@ -50943,6 +50946,38 @@ var Style = function () {
         set: function set(opacity) {
             this._opacity = opacity;
             traverse_1.default(this.target, applyOpacity, opacity);
+        }
+    }, {
+        key: "color",
+        get: function get() {
+            return cToObj(this.target.coreObject.material.color);
+        },
+        set: function set(value) {
+            this.target.coreObject.material.color.set(value);
+        }
+    }, {
+        key: "colorR",
+        get: function get() {
+            return this.target.coreObject.material.color.r;
+        },
+        set: function set(value) {
+            this.target.coreObject.material.color.r = value;
+        }
+    }, {
+        key: "colorG",
+        get: function get() {
+            return this.target.coreObject.material.color.g;
+        },
+        set: function set(value) {
+            this.target.coreObject.material.color.g = value;
+        }
+    }, {
+        key: "colorB",
+        get: function get() {
+            return this.target.coreObject.material.color.b;
+        },
+        set: function set(value) {
+            this.target.coreObject.material.color.b = value;
         }
     }]);
 
