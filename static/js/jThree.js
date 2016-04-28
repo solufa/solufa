@@ -50178,6 +50178,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var Style_1 = require("./Style");
 var idList = [];
 
 var BaseNode = function () {
@@ -50190,6 +50191,7 @@ var BaseNode = function () {
         this.listenerList = {};
         this.tagName = this.nodeName = tagName;
         this.ownerDocument = gomlDoc;
+        this.style = new Style_1.default(this);
     }
 
     _createClass(BaseNode, [{
@@ -50299,7 +50301,7 @@ var BaseNode = function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = BaseNode;
 
-},{}],296:[function(require,module,exports){
+},{"./Style":298}],296:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -50336,7 +50338,7 @@ var GomlDoc = function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GomlDoc;
 
-},{"./createNode":299}],297:[function(require,module,exports){
+},{"./createNode":300}],297:[function(require,module,exports){
 "use strict";
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
@@ -50381,19 +50383,7 @@ var GomlNode = function (_BaseNode_1$default) {
         }
     }, {
         key: "attrHook",
-        value: function attrHook(name, value) {
-            if (typeof value === "string" && /^(\{|\[)/.test(value)) {
-                value = string2Json_1.default(value);
-            }
-            switch (name) {
-                case "position":
-                    THREE.Vector3.prototype.set.apply(this.coreObject.position, value);
-                    break;
-                case "positionY":
-                    this.coreObject.position.y = +value;
-                    break;
-            }
-        }
+        value: function attrHook(name, value) {}
     }]);
 
     return GomlNode;
@@ -50485,10 +50475,10 @@ var VpNode = function (_BaseNode_1$default3) {
         key: "attrHook",
         value: function attrHook(name, value) {
             switch (name) {
-                case "camera":
+                case "cam":
                     var cam = this.ownerDocument.body.querySelector(value);
                     if (!cam) {
-                        errorMessage_1.default('The camera of rdr element can not be found in the selector "' + value + '".');
+                        errorMessage_1.default('The cam of rdr element can not be found in the selector "' + value + '".');
                     } else {
                         cam.setScene();
                         this.cameraObject = cam.coreObject;
@@ -50525,19 +50515,19 @@ var mtlPool = [];
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     body: BaseNode_1.default,
-    camera: function (_GomlNode) {
-        _inherits(camera, _GomlNode);
+    cam: function (_GomlNode) {
+        _inherits(cam, _GomlNode);
 
-        function camera(gomlDoc) {
-            _classCallCheck(this, camera);
+        function cam(gomlDoc) {
+            _classCallCheck(this, cam);
 
-            var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(camera).call(this, "camera", gomlDoc));
+            var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(cam).call(this, "cam", gomlDoc));
 
             _this4.coreObject = new THREE.PerspectiveCamera();
             return _this4;
         }
 
-        _createClass(camera, [{
+        _createClass(cam, [{
             key: "setScene",
             value: function setScene() {
                 var scene = this.parentNode;
@@ -50548,7 +50538,7 @@ exports.default = {
             }
         }]);
 
-        return camera;
+        return cam;
     }(GomlNode),
 
     head: BaseNode_1.default,
@@ -50589,6 +50579,8 @@ exports.default = {
         _createClass(mesh, [{
             key: "attrHook",
             value: function attrHook(name, value) {
+                var _this7 = this;
+
                 value = string2Json_1.default(value);
                 _get(Object.getPrototypeOf(mesh.prototype), "attrHook", this).call(this, name, value);
                 switch (name) {
@@ -50597,7 +50589,18 @@ exports.default = {
                             this.coreObject.geometry = geoPool[value.cacheId];
                         } else {
                             value.cacheId = geoPool.length;
-                            this.coreObject.geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
+                            if (value.type === "Custom") {
+                                (function () {
+                                    var geometry = _this7.coreObject.geometry = new THREE.Geometry();
+                                    if (value.vertices) {
+                                        value.vertices.forEach(function (vec) {
+                                            geometry.vertices.push(new THREE.Vector3(vec[0], vec[1], vec[2]));
+                                        });
+                                    }
+                                })();
+                            } else {
+                                this.coreObject.geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
+                            }
                             geoPool.push(this.coreObject.geometry);
                         }
                         break;
@@ -50623,10 +50626,10 @@ exports.default = {
         function obj(gomlDoc) {
             _classCallCheck(this, obj);
 
-            var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
+            var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
 
-            _this7.coreObject = new THREE.Object3D();
-            return _this7;
+            _this8.coreObject = new THREE.Object3D();
+            return _this8;
         }
 
         return obj;
@@ -50650,10 +50653,10 @@ exports.default = {
         function scene(gomlDoc) {
             _classCallCheck(this, scene);
 
-            var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
+            var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
 
-            _this9.coreObject = new THREE.Scene();
-            return _this9;
+            _this10.coreObject = new THREE.Scene();
+            return _this10;
         }
 
         return scene;
@@ -50666,13 +50669,13 @@ exports.default = {
         function vp(gomlDoc) {
             _classCallCheck(this, vp);
 
-            var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
+            var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
 
-            _this10.setAttribute("width", 1);
-            _this10.setAttribute("height", 1);
-            _this10.setAttribute("top", 0);
-            _this10.setAttribute("left", 0);
-            return _this10;
+            _this11.setAttribute("width", 1);
+            _this11.setAttribute("height", 1);
+            _this11.setAttribute("top", 0);
+            _this11.setAttribute("left", 0);
+            return _this11;
         }
 
         return vp;
@@ -50680,7 +50683,276 @@ exports.default = {
 
 };
 
-},{"../update":302,"../utils/errorMessage":303,"../utils/string2Json":304,"./BaseNode":295,"./createCanvas":298,"three":294}],298:[function(require,module,exports){
+},{"../update":303,"../utils/errorMessage":304,"../utils/string2Json":305,"./BaseNode":295,"./createCanvas":299,"three":294}],298:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var THREE = require("three");
+var traverse_1 = require("../utils/traverse");
+function toArr(vec) {
+    return [vec.x, vec.y, vec.z];
+}
+function setVec(vec, arr) {
+    vec.set(arr[0], arr[1], arr[2]);
+}
+function qToArr(quat) {
+    return [quat.x, quat.y, quat.z, quat.w];
+}
+function setQuat(quat, arr) {
+    quat.set(arr[0], arr[1], arr[2], arr[3]);
+}
+function applyOpacity(elem, opacity) {
+    if (elem.coreObject.material) {
+        Object.assign(elem.coreObject.material, {
+            opacity: elem.style.opacity * opacity,
+            transparent: true
+        });
+    }
+    return elem.style.opacity * opacity;
+}
+
+var Style = function () {
+    function Style(target) {
+        _classCallCheck(this, Style);
+
+        this.target = target;
+        this._lookAt = new THREE.Vector3();
+        this._opacity = 1;
+    }
+
+    _createClass(Style, [{
+        key: "pos",
+        get: function get() {
+            return toArr(this.target.coreObject.position);
+        },
+        set: function set(array) {
+            setVec(this.target.coreObject.position, array);
+        }
+    }, {
+        key: "posX",
+        get: function get() {
+            return this.target.coreObject.position.x;
+        },
+        set: function set(x) {
+            this.target.coreObject.position.x = x;
+        }
+    }, {
+        key: "posY",
+        get: function get() {
+            return this.target.coreObject.position.y;
+        },
+        set: function set(y) {
+            this.target.coreObject.position.y = y;
+        }
+    }, {
+        key: "posZ",
+        get: function get() {
+            return this.target.coreObject.position.z;
+        },
+        set: function set(z) {
+            this.target.coreObject.position.z = z;
+        }
+    }, {
+        key: "scale",
+        get: function get() {
+            return toArr(this.target.coreObject.scale);
+        },
+        set: function set(array) {
+            setVec(this.target.coreObject.scale, array);
+        }
+    }, {
+        key: "scaleX",
+        get: function get() {
+            return this.target.coreObject.scale.x;
+        },
+        set: function set(x) {
+            this.target.coreObject.scale.x = x;
+        }
+    }, {
+        key: "scaleY",
+        get: function get() {
+            return this.target.coreObject.scale.y;
+        },
+        set: function set(y) {
+            this.target.coreObject.scale.y = y;
+        }
+    }, {
+        key: "scaleZ",
+        get: function get() {
+            return this.target.coreObject.scale.z;
+        },
+        set: function set(z) {
+            this.target.coreObject.scale.z = z;
+        }
+    }, {
+        key: "up",
+        get: function get() {
+            return toArr(this.target.coreObject.up);
+        },
+        set: function set(array) {
+            setVec(this.target.coreObject.up, array);
+        }
+    }, {
+        key: "upX",
+        get: function get() {
+            return this.target.coreObject.up.x;
+        },
+        set: function set(x) {
+            this.target.coreObject.up.x = x;
+        }
+    }, {
+        key: "upY",
+        get: function get() {
+            return this.target.coreObject.up.y;
+        },
+        set: function set(y) {
+            this.target.coreObject.up.y = y;
+        }
+    }, {
+        key: "upZ",
+        get: function get() {
+            return this.target.coreObject.up.z;
+        },
+        set: function set(z) {
+            this.target.coreObject.up.z = z;
+        }
+    }, {
+        key: "rotateOrder",
+        get: function get() {
+            return this.target.coreObject.rotation.order;
+        },
+        set: function set(order) {
+            this.target.coreObject.rotation.order = order;
+        }
+    }, {
+        key: "rotate",
+        get: function get() {
+            return toArr(this.target.coreObject.rotation);
+        },
+        set: function set(array) {
+            setVec(this.target.coreObject.rotation, array);
+        }
+    }, {
+        key: "rotateX",
+        get: function get() {
+            return this.target.coreObject.rotation.x;
+        },
+        set: function set(x) {
+            this.target.coreObject.rotation.x = x;
+        }
+    }, {
+        key: "rotateY",
+        get: function get() {
+            return this.target.coreObject.rotation.y;
+        },
+        set: function set(y) {
+            this.target.coreObject.rotation.y = y;
+        }
+    }, {
+        key: "rotateZ",
+        get: function get() {
+            return this.target.coreObject.rotation.z;
+        },
+        set: function set(z) {
+            this.target.coreObject.rotation.z = z;
+        }
+    }, {
+        key: "quat",
+        get: function get() {
+            return qToArr(this.target.coreObject.quaternion);
+        },
+        set: function set(array) {
+            setQuat(this.target.coreObject.quaternion, array);
+        }
+    }, {
+        key: "quatX",
+        get: function get() {
+            return this.target.coreObject.quaternion.x;
+        },
+        set: function set(x) {
+            this.target.coreObject.quaternion.x = x;
+        }
+    }, {
+        key: "quatY",
+        get: function get() {
+            return this.target.coreObject.quaternion.y;
+        },
+        set: function set(y) {
+            this.target.coreObject.quaternion.y = y;
+        }
+    }, {
+        key: "quatZ",
+        get: function get() {
+            return this.target.coreObject.quaternion.z;
+        },
+        set: function set(z) {
+            this.target.coreObject.quaternion.z = z;
+        }
+    }, {
+        key: "quatW",
+        get: function get() {
+            return this.target.coreObject.quaternion.w;
+        },
+        set: function set(w) {
+            this.target.coreObject.quaternion.w = w;
+        }
+    }, {
+        key: "lookAt",
+        get: function get() {
+            return toArr(this._lookAt);
+        },
+        set: function set(array) {
+            setVec(this._lookAt, array);
+            this.target.coreObject.lookAt(this._lookAt);
+        }
+    }, {
+        key: "lookAtX",
+        get: function get() {
+            return this._lookAt.x;
+        },
+        set: function set(x) {
+            this._lookAt.x = x;
+            this.target.coreObject.lookAt(this._lookAt);
+        }
+    }, {
+        key: "lookAtY",
+        get: function get() {
+            return this._lookAt.y;
+        },
+        set: function set(y) {
+            this._lookAt.y = y;
+            this.target.coreObject.lookAt(this._lookAt);
+        }
+    }, {
+        key: "lookAtZ",
+        get: function get() {
+            return this._lookAt.z;
+        },
+        set: function set(z) {
+            this._lookAt.z = z;
+            this.target.coreObject.lookAt(this._lookAt);
+        }
+    }, {
+        key: "opacity",
+        get: function get() {
+            return this._opacity;
+        },
+        set: function set(opacity) {
+            this._opacity = opacity;
+            traverse_1.default(this.target, applyOpacity, opacity);
+        }
+    }]);
+
+    return Style;
+}();
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Style;
+
+},{"../utils/traverse":306,"three":294}],299:[function(require,module,exports){
 "use strict";
 
 function createCanvas() {
@@ -50705,7 +50977,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = createCanvas;
 ;
 
-},{}],299:[function(require,module,exports){
+},{}],300:[function(require,module,exports){
 "use strict";
 
 var NodeList_1 = require("./NodeList");
@@ -50722,7 +50994,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 ;
 
-},{"../utils/errorMessage":303,"./NodeList":297}],300:[function(require,module,exports){
+},{"../utils/errorMessage":304,"./NodeList":297}],301:[function(require,module,exports){
 "use strict";
 
 require("babel-polyfill");
@@ -50753,7 +51025,6 @@ var JthreeInit = function JthreeInit() {
     }
     var doc = new GomlDoc_1.default();
     jThree.m = m;
-    jThree.s = JSON.stringify;
     jThree.THREE = three;
     jThree.update = update_1.updateJ3;
     jThree.document = doc;
@@ -50769,13 +51040,13 @@ var JthreeInit = function JthreeInit() {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = JthreeInit;
 
-},{"./Goml/GomlDoc":296,"./update":302,"babel-polyfill":1,"mithril":292,"three":294}],301:[function(require,module,exports){
+},{"./Goml/GomlDoc":296,"./update":303,"babel-polyfill":1,"mithril":292,"three":294}],302:[function(require,module,exports){
 "use strict";
 
 var Init_1 = require("./Init");
 Init_1.default();
 
-},{"./Init":300}],302:[function(require,module,exports){
+},{"./Init":301}],303:[function(require,module,exports){
 "use strict";
 
 var updateGomlList = [];
@@ -50817,7 +51088,7 @@ function updateGoml(callback, append) {
 }
 exports.updateGoml = updateGoml;
 
-},{}],303:[function(require,module,exports){
+},{}],304:[function(require,module,exports){
 "use strict";
 
 function default_1(message) {
@@ -50827,7 +51098,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 ;
 
-},{}],304:[function(require,module,exports){
+},{}],305:[function(require,module,exports){
 "use strict";
 
 var JSON5 = require("json5");
@@ -50848,4 +51119,18 @@ exports.default = function (value) {
     }
 };
 
-},{"./errorMessage":303,"json5":291}]},{},[301]);
+},{"./errorMessage":304,"json5":291}],306:[function(require,module,exports){
+"use strict";
+
+function traverse(element, callback, value) {
+    var newValue = callback(element, value);
+    var children = element.childNodes;
+    for (var i = 0, l = children.length; i < l; i++) {
+        traverse(children[i], callback, newValue);
+    }
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = traverse;
+;
+
+},{}]},{},[302]);

@@ -22,18 +22,12 @@ class GomlNode extends BaseNode {
   }
 
   public attrHook( name: string, value ) {
-    if ( typeof value === "string" && /^(\{|\[)/.test( value ) ) {
+    /*if ( typeof value === "string" && /^(\{|\[)/.test( value ) ) {
       value = string2Json( value );
     }
 
     switch ( name ) {
-    case "position":
-      THREE.Vector3.prototype.set.apply( this.coreObject.position, value );
-      break;
-    case "positionY":
-      this.coreObject.position.y = +value;
-      break;
-    }
+    }*/
   }
 }
 
@@ -117,10 +111,10 @@ class VpNode extends BaseNode {
 
   public attrHook( name: string, value ): void {
     switch ( name ) {
-    case "camera":
+    case "cam":
       const cam = this.ownerDocument.body.querySelector( value );
       if ( !cam ) {
-        errorMessage( 'The camera of rdr element can not be found in the selector "' + value + '".' );
+        errorMessage( 'The cam of rdr element can not be found in the selector "' + value + '".' );
       } else {
         cam.setScene();
         this.cameraObject = cam.coreObject;
@@ -157,7 +151,7 @@ const mtlPool = [];
 export default {
   body: BaseNode,
 
-  camera: class extends GomlNode {
+  cam: class extends GomlNode {
 
     public setScene() {
       let scene = this.parentNode;
@@ -168,7 +162,7 @@ export default {
     }
 
     constructor( gomlDoc ) {
-      super( "camera", gomlDoc );
+      super( "cam", gomlDoc );
       this.coreObject = new THREE.PerspectiveCamera;
     }
   },
@@ -202,13 +196,22 @@ export default {
           this.coreObject.geometry = geoPool[ value.cacheId ];
         } else {
           value.cacheId = geoPool.length;
-          this.coreObject.geometry = new THREE[ value.type + "Geometry" ](
-            value.value[ 0 ],
-            value.value[ 1 ],
-            value.value[ 2 ],
-            value.value[ 3 ],
-            value.value[ 4 ],
-            value.value[ 5 ] );
+          if ( value.type === "Custom" ) {
+            const geometry = this.coreObject.geometry = new THREE.Geometry;
+            if ( value.vertices ) {
+              value.vertices.forEach( function( vec ) {
+                geometry.vertices.push( new THREE.Vector3( vec[ 0 ], vec[ 1 ], vec[ 2 ] ) );
+              });
+            }
+          } else {
+            this.coreObject.geometry = new THREE[ value.type + "Geometry" ](
+              value.value[ 0 ],
+              value.value[ 1 ],
+              value.value[ 2 ],
+              value.value[ 3 ],
+              value.value[ 4 ],
+              value.value[ 5 ] );
+          }
           geoPool.push( this.coreObject.geometry );
         }
         break;

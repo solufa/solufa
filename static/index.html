@@ -2,21 +2,17 @@
 <script>
 document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livereload.js?ext=Chrome&amp;extver=2.1.0"></scr' + 'ipt>' );
 </script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>-->
 <script src="js/MSXTransformer.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/msx;harmony=true">
 j3( function() {
-var pos = [0,0,0];
-var fn = function() {
-	//pos[1]+=.005;m.redraw();
-};
-	setInterval( fn,50);
 
   var App = {
 		vm: {
 			geo: {
         type: "Box",
-        value: [ .3, .3, .3 ]
+        value: [ 5, 5, 5 ]
       },
 			mtl: {
         type: "MeshPhong",
@@ -26,10 +22,23 @@ var fn = function() {
         }
       },
 			positions: [],
+			lightPos: { pos: [ 1, 10, 10 ] },
+			objPos: { posZ: -155 },
 			init: function() {
-	      for ( var i = 0; i < 1000; i++ ) {
-	        this.positions.push([ Math.random() * 100 - 50,Math.random() * 100 - 50,Math.random() * 100 - 50]);
+	      for ( var i = 0; i < 10; i++ ) {
+					for ( var j = 0; j < 10; j++ ) {
+						for ( var k = 0; k < 10; k++ ) {
+							this.positions.push([i*10-45,j*10-45,k*10-45]);
+						}
+					}
 	      }
+			},
+			rotate: function( elem ) {
+				j3.update( function( delta, elapsed ) {
+					elem.style.rotateY += delta * .0002;
+					elem.style.rotateX += delta * .0002;
+					elem.style.opacity = Math.sin( elapsed * .0005 );
+				});
 			}
 		},
     controller: function() {
@@ -39,13 +48,11 @@ var fn = function() {
       var vm = App.vm;
 
       return <scene>
-				<mesh geo={vm.geo} mtl={vm.mtl} position={j3.s([0,0,-3])}/>
-        { vm.positions.map( v => <mesh geo={vm.geo} mtl={vm.mtl} position={v}/>)}
-        <obj position={j3.s(pos)}>
-          <camera id="cam"/>
-          <camera id="cam1"/>
-        </obj>
-        <light type="Dir" position={j3.s([1,10,10])}/>
+				<obj config={vm.rotate} style={ vm.objPos }>
+        	{ vm.positions.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={{ pos: v }}/>)}
+				</obj>
+				<cam id="cam"/>
+        <light type="Dir" style={ vm.lightPos }/>
       </scene>;
     }
   };
@@ -53,8 +60,7 @@ var fn = function() {
 
   m.mount( j3.document.body, App );
   m.render( j3.document.head, <rdr init={{ frame: "#jthree", antialias: true, preserveDrawingBuffer: false }}>
-		<vp camera="#cam" width={.5} height={1} left={0} top={0}/>
-		<vp camera="#cam1" width={.5} height={1} left={.5} top={0}/>
+		<vp cam="#cam"/>
 	</rdr> );
 });
 </script>

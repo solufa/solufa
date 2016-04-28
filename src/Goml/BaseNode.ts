@@ -1,3 +1,5 @@
+import Style from "./Style";
+
 const idList = []; // todo: appendとremoveの反映
 
 class BaseNode {
@@ -9,6 +11,7 @@ class BaseNode {
   public nodeName: string;
   public ownerDocument;
   public id: string;
+  public style;
 
   private attrList = {};
   private listenerList = {};
@@ -101,6 +104,7 @@ class BaseNode {
   constructor( tagName: string, gomlDoc ) {
     this.tagName = this.nodeName = tagName;
     this.ownerDocument = gomlDoc;
+    this.style = new Style( this );
   }
 }
 

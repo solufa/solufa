@@ -19,6 +19,7 @@
         "./src/Goml/createNode.ts",
         "./src/Goml/GomlDoc.ts",
         "./src/Goml/NodeList.ts",
+        "./src/Goml/Style.ts",
         "./src/Init.ts",
         "./src/jThree.ts",
         "./src/module1.ts",
@@ -28,7 +29,8 @@
         "./src/refs/threejs/three.d.ts",
         "./src/update.ts",
         "./src/utils/errorMessage.ts",
-        "./src/utils/string2Json.ts"
+        "./src/utils/string2Json.ts",
+        "./src/utils/traverse.ts"
     ],
     "exclude": [
         "node_modules"
