@@ -49409,20 +49409,30 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Style_1 = require("./Style");
-var idList = [];
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-var BaseNode = function () {
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Style_1 = require("./Style");
+var EventNode_1 = require("./EventNode");
+var idList = [];
+var classList = [];
+
+var BaseNode = function (_EventNode_1$default) {
+    _inherits(BaseNode, _EventNode_1$default);
+
     function BaseNode(tagName, gomlDoc) {
         _classCallCheck(this, BaseNode);
 
-        this.childNodes = [];
-        this.attributes = [];
-        this.attrList = {};
-        this.listenerList = {};
-        this.tagName = this.nodeName = tagName;
-        this.ownerDocument = gomlDoc;
-        this.style = new Style_1.default(this);
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BaseNode).call(this));
+
+        _this.childNodes = [];
+        _this.attributes = [];
+        _this.attrList = {};
+        _this.tagName = _this.nodeName = tagName;
+        _this.ownerDocument = gomlDoc;
+        _this.style = new Style_1.default(_this);
+        return _this;
     }
 
     _createClass(BaseNode, [{
@@ -49441,25 +49451,6 @@ var BaseNode = function () {
             return;
         }
     }, {
-        key: "addEventListener",
-        value: function addEventListener(type, listener) {
-            var list = this.listenerList[type] || [];
-            list.push(listener);
-            this.listenerList[type] = list;
-        }
-    }, {
-        key: "removeEventListener",
-        value: function removeEventListener(type, listener) {
-            var list = this.listenerList[type];
-            if (!list) {
-                return;
-            }
-            var index = list.indexOf(listener);
-            if (index !== -1) {
-                list.splice(index, 1);
-            }
-        }
-    }, {
         key: "setAttribute",
         value: function setAttribute(name, value) {
             if (this.attrList[name]) {
@@ -49470,12 +49461,30 @@ var BaseNode = function () {
                     value: value
                 });
             }
-            if (name === "id") {
-                if (this.id) {
-                    delete idList[this.id];
-                }
-                this.id = value;
-                idList[value] = this;
+            switch (name) {
+                case "id":
+                    if (this.id) {
+                        delete idList[this.id];
+                    }
+                    this.id = value;
+                    idList[value] = this;
+                    break;
+                case "class":
+                    if (this.className) {
+                        this.className.split(" ").forEach(function (className) {
+                            classList[className].splice(classList[className].indexOf(this), 1);
+                            if (!classList[className].length) {
+                                delete classList[className];
+                            }
+                        }.bind(this));
+                    }
+                    this.className = value;
+                    value.split(" ").forEach(function (className) {
+                        var list = classList[className] || [];
+                        list.push(this);
+                        classList[className] = list;
+                    }.bind(this));
+                    break;
             }
             this.attrHook(name, value);
         }
@@ -49492,6 +49501,7 @@ var BaseNode = function () {
             }
             this.childNodes.push(child);
             child.parentNode = this;
+            this._resetChildHandlerTypeList();
             this.appendHook(child);
         }
     }, {
@@ -49507,6 +49517,7 @@ var BaseNode = function () {
                 this.childNodes.splice(index, 0, newNode);
             }
             newNode.parentNode = this;
+            this._resetChildHandlerTypeList();
             this.appendHook(newNode);
         }
     }, {
@@ -49516,39 +49527,291 @@ var BaseNode = function () {
             if (index !== -1) {
                 this.childNodes.splice(index, 1);
                 childNode.parentNode = null;
+                this._resetChildHandlerTypeList();
                 this.removeHook(childNode);
             }
         }
     }, {
         key: "querySelector",
         value: function querySelector(selector) {
-            return idList[selector.slice(1)];
+            if (/^#/.test(selector)) {
+                return idList[selector.slice(1)] || null;
+            } else if (/^\./.test(selector)) {
+                var list = classList[selector.slice(1)];
+                return list ? list[0] : null;
+            }
         }
     }]);
 
     return BaseNode;
-}();
+}(EventNode_1.default);
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = BaseNode;
 
-},{"./Style":297}],295:[function(require,module,exports){
+},{"./EventNode":295,"./Style":298}],295:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var createNode_1 = require("./createNode");
+var EventNode = function () {
+    function EventNode() {
+        _classCallCheck(this, EventNode);
 
-var GomlDoc = function () {
+        this._allHandlerTypeList = [];
+        this.handlerList = {};
+        this.handlerTypeList = [];
+        this.childHandlerTypeList = [];
+    }
+
+    _createClass(EventNode, [{
+        key: "_resetChildHandlerTypeList",
+        value: function _resetChildHandlerTypeList() {
+            var _this = this;
+
+            var target = this;
+            var iterateHandler = function iterateHandler(type) {
+                if (target.childHandlerTypeList.indexOf(type) === -1) {
+                    target.childHandlerTypeList.push(type);
+                }
+            };
+            var iterateChild = function iterateChild(child) {
+                if (child.hasOwnProperty("textContent")) {
+                    return;
+                }
+                child.handlerTypeList.forEach(iterateHandler);
+                child.childHandlerTypeList.forEach(iterateHandler);
+            };
+            while (target) {
+                target.childHandlerTypeList.length = 0;
+                target.childNodes.forEach(iterateChild);
+                if (target.tagName === "scene") {
+                    this._allHandlerTypeList.length = 0;
+                    Array.prototype.push.apply(this._allHandlerTypeList, this.childHandlerTypeList);
+                    this.handlerTypeList.forEach(function (type) {
+                        if (_this._allHandlerTypeList.indexOf(type) === -1) {
+                            _this._allHandlerTypeList.push(type);
+                        }
+                    });
+                }
+                target = target.parentNode;
+            }
+        }
+    }, {
+        key: "addEventListener",
+        value: function addEventListener(type, listener) {
+            var list = this.handlerList[type];
+            if (!list) {
+                this.handlerList[type] = list = [];
+                this._resetHandlerTypeList();
+                if (this.parentNode) {
+                    this.parentNode._resetChildHandlerTypeList();
+                }
+            }
+            list.push(listener);
+        }
+    }, {
+        key: "removeEventListener",
+        value: function removeEventListener(type, listener) {
+            var list = this.handlerList[type];
+            if (!list) {
+                return;
+            }
+            var index = list.indexOf(listener);
+            if (index !== -1) {
+                list.splice(index, 1);
+            }
+            if (!list.length) {
+                delete this.handlerList[type];
+                this._resetHandlerTypeList();
+                if (this.parentNode) {
+                    this.parentNode._resetChildHandlerTypeList();
+                }
+            }
+        }
+    }, {
+        key: "dispatchEvent",
+        value: function dispatchEvent(evt) {
+            evt.target = this;
+            var target = this;
+            var i = void 0;
+            var l = void 0;
+            while (!evt.cancelBubble && !evt.cancelImmediateBubble && target) {
+                var list = target.handlerList[evt.type];
+                if (list) {
+                    evt.currentTarget = target;
+                    for (i = 0, l = list.length; i < l; i++) {
+                        evt.calcelBubble = list[i].call(target, evt) === false || evt.cancelBubble;
+                        if (evt.cancelImmediateBubble) {
+                            break;
+                        }
+                    }
+                }
+                target = target.parentNode;
+            }
+        }
+    }, {
+        key: "_resetHandlerTypeList",
+        value: function _resetHandlerTypeList() {
+            var list = this.handlerTypeList;
+            list.length = 0;
+            for (var name in this.handlerList) {
+                if (1) {
+                    list.push(name);
+                }
+            }
+        }
+    }]);
+
+    return EventNode;
+}();
+
+;
+for (var key in window) {
+    if (/^on/.test(key)) {
+        (function () {
+            var type = "_" + key;
+            Object.defineProperty(EventNode.prototype, key, {
+                get: function get() {
+                    return this[type];
+                },
+                set: function set(callback) {
+                    if (this[type]) {
+                        this.removeEventListener(type.slice(3), this[type], false);
+                        this[type] = null;
+                    }
+                    if (typeof callback === "function") {
+                        this[type] = callback;
+                        this.addEventListener(type.slice(3), callback, false);
+                    }
+                }
+            });
+        })();
+    }
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = EventNode;
+
+},{}],296:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var createNode_1 = require("./createNode");
+var EventNode_1 = require("./EventNode");
+var BaseNode_1 = require("./BaseNode");
+
+var NewEvent = function () {
+    function NewEvent(type) {
+        _classCallCheck(this, NewEvent);
+
+        this.cancelBubble = false;
+        this.cancelImmediateBubble = false;
+        this.returnValue = true;
+        this.EventList = {
+            HTMLEvent: Event,
+            MouseEvent: MouseEvent,
+            MutationEvent: MutationEvent,
+            UIEvent: UIEvent
+        };
+        if (typeof type === "string") {
+            this.originalEvent = new this.EventList[type.split(/s$/)[0]](type);
+        } else {
+            this.originalEvent = type;
+            this.type = type.type;
+        }
+    }
+
+    _createClass(NewEvent, [{
+        key: "preventDefault",
+        value: function preventDefault() {
+            this.originalEvent.preventDefault();
+            this.returnValue = false;
+        }
+    }, {
+        key: "stopPropagation",
+        value: function stopPropagation() {
+            this.originalEvent.stopPropagation();
+            this.cancelBubble = true;
+        }
+    }, {
+        key: "stopImmediatePropagation",
+        value: function stopImmediatePropagation() {
+            this.originalEvent.stopImmediatePropagation();
+            this.cancelImmediateBubble = true;
+        }
+    }, {
+        key: "initMouseEvent",
+        value: function initMouseEvent(type) {
+            this.type = type;
+            this.originalEvent.initMouseEvent.apply(this.originalEvent, arguments);
+        }
+    }, {
+        key: "initUIEvent",
+        value: function initUIEvent(type) {
+            this.type = type;
+            this.originalEvent.initUIEvent.apply(this.originalEvent, arguments);
+        }
+    }, {
+        key: "initMutationEvent",
+        value: function initMutationEvent(type) {
+            this.type = type;
+            this.originalEvent.initMutationEvent.apply(this.originalEvent, arguments);
+        }
+    }, {
+        key: "initEvent",
+        value: function initEvent(type) {
+            this.type = type;
+            this.originalEvent.initEvent.apply(this.originalEvent, arguments);
+        }
+    }]);
+
+    return NewEvent;
+}();
+
+;
+
+var TextNode = function (_BaseNode_1$default) {
+    _inherits(TextNode, _BaseNode_1$default);
+
+    function TextNode(text, gomlDoc) {
+        _classCallCheck(this, TextNode);
+
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TextNode).call(this, "#text", gomlDoc));
+
+        _this.coreObject = {};
+        _this.textContent = text;
+        return _this;
+    }
+
+    return TextNode;
+}(BaseNode_1.default);
+
+var GomlDoc = function (_EventNode_1$default) {
+    _inherits(GomlDoc, _EventNode_1$default);
+
     function GomlDoc() {
         _classCallCheck(this, GomlDoc);
 
-        this.body = createNode_1.default("body", this);
-        this.body.parentNode = this;
-        this.head = createNode_1.default("head", this);
-        this.head.parentNode = this;
+        var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(GomlDoc).call(this));
+
+        _this2.createEvent = function (type) {
+            return new NewEvent(type);
+        };
+        _this2.body = createNode_1.default("body", _this2);
+        _this2.body.parentNode = _this2;
+        _this2.head = createNode_1.default("head", _this2);
+        _this2.head.parentNode = _this2;
+        _this2.childNodes = [_this2.body, _this2.head];
+        return _this2;
     }
 
     _createClass(GomlDoc, [{
@@ -49559,17 +49822,17 @@ var GomlDoc = function () {
     }, {
         key: "createTextNode",
         value: function createTextNode(text) {
-            return { textContent: text };
+            return new TextNode(text, this);
         }
     }]);
 
     return GomlDoc;
-}();
+}(EventNode_1.default);
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GomlDoc;
 
-},{"./createNode":300}],296:[function(require,module,exports){
+},{"./BaseNode":294,"./EventNode":295,"./createNode":302}],297:[function(require,module,exports){
 "use strict";
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
@@ -49588,6 +49851,8 @@ var errorMessage_1 = require("../utils/errorMessage");
 var update_1 = require("../update");
 var createCanvas_1 = require("./createCanvas");
 var createMaterial_1 = require("./createMaterial");
+var adminCoreObject_1 = require("./adminCoreObject");
+var adminCoreObject_2 = require("./adminCoreObject");
 
 var GomlNode = function (_BaseNode_1$default) {
     _inherits(GomlNode, _BaseNode_1$default);
@@ -49612,6 +49877,15 @@ var GomlNode = function (_BaseNode_1$default) {
                 this.coreObject.remove(childNode.coreObject);
             }
         }
+    }, {
+        key: "coreObject",
+        get: function get() {
+            return this._coreObject;
+        },
+        set: function set(object) {
+            this._coreObject = object;
+            adminCoreObject_1.setCoreObject(this);
+        }
     }]);
 
     return GomlNode;
@@ -49620,10 +49894,40 @@ var GomlNode = function (_BaseNode_1$default) {
 var RdrNode = function (_BaseNode_1$default2) {
     _inherits(RdrNode, _BaseNode_1$default2);
 
-    function RdrNode() {
+    function RdrNode(tagName, gomlDoc) {
         _classCallCheck(this, RdrNode);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(RdrNode).apply(this, arguments));
+        var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(RdrNode).call(this, tagName, gomlDoc));
+
+        _this2.handlerTypes = [];
+        _this2.newHandlerTypes = [];
+        _this2.canvasHandler = function (e) {
+            var offsetX = e.offsetX === undefined ? e.layerX : e.offsetX;
+            var offsetY = e.offsetY === undefined ? e.layerY : e.offsetY;
+            for (var i = _this2.childNodes.length, child; i > 0; i--) {
+                child = _this2.childNodes[i - 1];
+                if (child._isCollision(offsetX, offsetY)) {
+                    child._triggerEvent(e, offsetX, offsetY);
+                    break;
+                }
+            }
+        };
+        _this2.setNewHandlerType = function (type) {
+            if (_this2.newHandlerTypes.indexOf(type) === -1) {
+                _this2.newHandlerTypes.push(type);
+            }
+        };
+        _this2.addCanvasEvent = function (type) {
+            if (_this2.handlerTypes.indexOf(type) === -1) {
+                _this2.canvas.addEventListener(type, _this2.canvasHandler, false);
+            }
+        };
+        _this2.removeCanvasEvent = function (type) {
+            if (_this2.newHandlerTypes.indexOf(type) === -1) {
+                _this2.canvas.removeEventListener(type, _this2.canvasHandler, false);
+            }
+        };
+        return _this2;
     }
 
     _createClass(RdrNode, [{
@@ -49656,18 +49960,46 @@ var RdrNode = function (_BaseNode_1$default2) {
     }, {
         key: "render",
         value: function render() {
+            var _this3 = this;
+
             this.coreObject.clear();
-            for (var i = 0; i < this.childNodes.length; i++) {
-                this.childNodes[i].render(this.coreObject);
-            }
+            this.childNodes.forEach(function (child) {
+                child.render(_this3.coreObject).forEach(_this3.setNewHandlerType);
+            });
+            this.newHandlerTypes.forEach(this.addCanvasEvent);
+            this.handlerTypes.forEach(this.removeCanvasEvent);
+            this.handlerTypes = this.newHandlerTypes;
+            this.newHandlerTypes.length = 0;
         }
     }, {
         key: "resize",
         value: function resize(e) {
+            var _this4 = this;
+
             this.coreObject.setSize(e.target.innerWidth, e.target.innerHeight);
-            for (var i = 0; i < this.childNodes.length; i++) {
-                this.childNodes[i].setSize(this.canvas.width, this.canvas.height);
-            }
+            this.childNodes.forEach(function (child) {
+                child.setSize(_this4.canvas.width, _this4.canvas.height);
+            });
+            this.setViewport();
+        }
+    }, {
+        key: "setViewport",
+        value: function setViewport() {
+            var _this5 = this;
+
+            this.childNodes.forEach(function (child) {
+                _this5.coreObject.setViewport(child.getAttribute("left") * _this5.canvas.width, child.getAttribute("bottom") * _this5.canvas.height, child.getAttribute("width") * _this5.canvas.width, child.getAttribute("height") * _this5.canvas.height);
+            });
+        }
+    }, {
+        key: "appendHook",
+        value: function appendHook() {
+            this.setViewport();
+        }
+    }, {
+        key: "removeHook",
+        value: function removeHook() {
+            this.setViewport();
         }
     }]);
 
@@ -49678,17 +50010,49 @@ var VpNode = function (_BaseNode_1$default3) {
     _inherits(VpNode, _BaseNode_1$default3);
 
     function VpNode() {
+        var _Object$getPrototypeO;
+
         _classCallCheck(this, VpNode);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(VpNode).apply(this, arguments));
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+        }
+
+        var _this6 = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(VpNode)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+
+        _this6.raycaster = new THREE.Raycaster();
+        _this6.tmpVec = new THREE.Vector3();
+        return _this6;
     }
 
     _createClass(VpNode, [{
+        key: "_isCollision",
+        value: function _isCollision(offsetX, offsetY) {
+            var ratioX = offsetX / this.width;
+            var ratioY = offsetY / this.height;
+            return ratioX > this.getAttribute("left") && ratioX < this.getAttribute("left") + this.getAttribute("width") && ratioY < 1 - this.getAttribute("bottom") && ratioY > 1 - this.getAttribute("bottom") - this.getAttribute("height");
+        }
+    }, {
+        key: "_triggerEvent",
+        value: function _triggerEvent(e, offsetX, offsetY) {
+            var ratioX = 2 * (offsetX - this.getAttribute("left") * this.width) / (this.getAttribute("width") * this.width) - 1;
+            var ratioY = -2 * (offsetY - (1 - this.getAttribute("bottom") - this.getAttribute("height")) * this.height) / (this.getAttribute("height") * this.height) + 1;
+            if (this.scene._allHandlerTypeList.indexOf(e.type) !== -1) {
+                this.raycaster.setFromCamera(this.tmpVec.set(ratioX, ratioY, 0), this.cameraObject);
+                var result = this.raycaster.intersectObject(this.scene.coreObject, true)[0];
+                if (result) {
+                    adminCoreObject_2.getGomlElement(result.object).dispatchEvent(this.ownerDocument.createEvent(e));
+                }
+            }
+        }
+    }, {
         key: "render",
         value: function render(renderer) {
-            if (this.cameraObject && +this.getAttribute("width") && +this.getAttribute("height")) {
-                renderer.setViewport(+this.getAttribute("left") * this.width, +this.getAttribute("top") * this.height, +this.getAttribute("width") * this.width, +this.getAttribute("height") * this.height);
-                renderer.render(this.cameraObject.sceneObject, this.cameraObject);
+            if (this.cameraObject) {
+                renderer.render(this.scene.coreObject, this.cameraObject);
+                return this.scene._allHandlerTypeList;
+            } else {
+                return [];
             }
         }
     }, {
@@ -49707,7 +50071,11 @@ var VpNode = function (_BaseNode_1$default3) {
                     if (!cam) {
                         errorMessage_1.default('The cam of rdr element can not be found in the selector "' + value + '".');
                     } else {
-                        cam.setScene();
+                        var scene = cam.parentNode;
+                        while (scene.tagName !== "scene") {
+                            scene = scene.parentNode;
+                        }
+                        this.scene = scene;
                         this.cameraObject = cam.coreObject;
                         this.setAspect();
                     }
@@ -49715,6 +50083,15 @@ var VpNode = function (_BaseNode_1$default3) {
                 case "width":
                 case "height":
                     this.setAspect();
+                    if (this.parentNode) {
+                        this.parentNode.setViewport();
+                    }
+                    break;
+                case "left":
+                case "bottom":
+                    if (this.parentNode) {
+                        this.parentNode.setViewport();
+                    }
                     break;
             }
         }
@@ -49738,37 +50115,50 @@ for (var key in THREE) {
     }
 }
 var geoPool = [];
+var geoCorePool = [];
 var mtlPool = [];
+var mtlCorePool = [];
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
-    body: BaseNode_1.default,
+    body: function (_BaseNode_1$default4) {
+        _inherits(body, _BaseNode_1$default4);
+
+        function body(gomlDoc) {
+            _classCallCheck(this, body);
+
+            return _possibleConstructorReturn(this, Object.getPrototypeOf(body).call(this, "body", gomlDoc));
+        }
+
+        return body;
+    }(BaseNode_1.default),
+
     cam: function (_GomlNode) {
         _inherits(cam, _GomlNode);
 
         function cam(gomlDoc) {
             _classCallCheck(this, cam);
 
-            var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(cam).call(this, "cam", gomlDoc));
+            var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(cam).call(this, "cam", gomlDoc));
 
-            _this4.coreObject = new THREE.PerspectiveCamera();
-            return _this4;
+            _this8.coreObject = new THREE.PerspectiveCamera();
+            return _this8;
         }
-
-        _createClass(cam, [{
-            key: "setScene",
-            value: function setScene() {
-                var scene = this.parentNode;
-                while (scene.tagName !== "scene") {
-                    scene = scene.parentNode;
-                }
-                this.coreObject.sceneObject = scene.coreObject;
-            }
-        }]);
 
         return cam;
     }(GomlNode),
 
-    head: BaseNode_1.default,
+    head: function (_BaseNode_1$default5) {
+        _inherits(head, _BaseNode_1$default5);
+
+        function head(gomlDoc) {
+            _classCallCheck(this, head);
+
+            return _possibleConstructorReturn(this, Object.getPrototypeOf(head).call(this, "head", gomlDoc));
+        }
+
+        return head;
+    }(BaseNode_1.default),
+
     light: function (_GomlNode2) {
         _inherits(light, _GomlNode2);
 
@@ -49797,27 +50187,28 @@ exports.default = {
         function mesh(gomlDoc) {
             _classCallCheck(this, mesh);
 
-            var _this6 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
+            var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
 
-            _this6.coreObject = new THREE.Mesh();
-            return _this6;
+            _this11.coreObject = new THREE.Mesh();
+            return _this11;
         }
 
         _createClass(mesh, [{
             key: "attrHook",
             value: function attrHook(name, value) {
-                var _this7 = this;
+                var _this12 = this;
 
                 _get(Object.getPrototypeOf(mesh.prototype), "attrHook", this).call(this, name, value);
+                var index = void 0;
                 switch (name) {
                     case "geo":
-                        if (value.cacheId !== undefined) {
-                            this.coreObject.geometry = geoPool[value.cacheId];
+                        index = geoPool.indexOf(value);
+                        if (index !== -1) {
+                            this.coreObject.geometry = geoCorePool[index];
                         } else {
-                            value.cacheId = geoPool.length;
                             if (value.type === "Custom") {
                                 (function () {
-                                    var geometry = _this7.coreObject.geometry = new THREE.Geometry();
+                                    var geometry = _this12.coreObject.geometry = new THREE.Geometry();
                                     if (value.vertices) {
                                         value.vertices.forEach(function (vec) {
                                             geometry.vertices.push(new THREE.Vector3(vec[0], vec[1], vec[2]));
@@ -49827,15 +50218,17 @@ exports.default = {
                             } else {
                                 this.coreObject.geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
                             }
-                            geoPool.push(this.coreObject.geometry);
+                            geoPool.push(value);
+                            geoCorePool[geoPool.length - 1] = this.coreObject.geometry;
                         }
                         break;
                     case "mtl":
-                        if (value.cacheId !== undefined) {
-                            this.coreObject.material = mtlPool[value.cacheId];
+                        index = mtlPool.indexOf(value);
+                        if (index !== -1) {
+                            this.coreObject.material = mtlCorePool[index];
                         } else {
-                            value.cacheId = mtlPool.length;
-                            mtlPool.push(this.coreObject.material = createMaterial_1.default(value));
+                            mtlPool.push(value);
+                            mtlCorePool[mtlPool.length - 1] = this.coreObject.material = createMaterial_1.default(value);
                         }
                         break;
                 }
@@ -49851,10 +50244,10 @@ exports.default = {
         function obj(gomlDoc) {
             _classCallCheck(this, obj);
 
-            var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
+            var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(obj).call(this, "obj", gomlDoc));
 
-            _this8.coreObject = new THREE.Object3D();
-            return _this8;
+            _this13.coreObject = new THREE.Object3D();
+            return _this13;
         }
 
         return obj;
@@ -49872,32 +50265,55 @@ exports.default = {
         return rdr;
     }(RdrNode),
 
+    rdrs: function (_BaseNode_1$default6) {
+        _inherits(rdrs, _BaseNode_1$default6);
+
+        function rdrs(gomlDoc) {
+            _classCallCheck(this, rdrs);
+
+            return _possibleConstructorReturn(this, Object.getPrototypeOf(rdrs).call(this, "rdrs", gomlDoc));
+        }
+
+        return rdrs;
+    }(BaseNode_1.default),
+
     scene: function (_GomlNode5) {
         _inherits(scene, _GomlNode5);
 
         function scene(gomlDoc) {
             _classCallCheck(this, scene);
 
-            var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
+            var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
 
-            _this10.coreObject = new THREE.Scene();
-            return _this10;
+            _this16.coreObject = new THREE.Scene();
+            return _this16;
         }
 
         return scene;
     }(GomlNode),
 
-    scenes: BaseNode_1.default,
+    scenes: function (_BaseNode_1$default7) {
+        _inherits(scenes, _BaseNode_1$default7);
+
+        function scenes(gomlDoc) {
+            _classCallCheck(this, scenes);
+
+            return _possibleConstructorReturn(this, Object.getPrototypeOf(scenes).call(this, "scenes", gomlDoc));
+        }
+
+        return scenes;
+    }(BaseNode_1.default),
+
     sprite: function (_GomlNode6) {
         _inherits(sprite, _GomlNode6);
 
         function sprite(gomlDoc) {
             _classCallCheck(this, sprite);
 
-            var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(sprite).call(this, "sprite", gomlDoc));
+            var _this18 = _possibleConstructorReturn(this, Object.getPrototypeOf(sprite).call(this, "sprite", gomlDoc));
 
-            _this11.coreObject = new THREE.Sprite();
-            return _this11;
+            _this18.coreObject = new THREE.Sprite();
+            return _this18;
         }
 
         _createClass(sprite, [{
@@ -49926,13 +50342,13 @@ exports.default = {
         function vp(gomlDoc) {
             _classCallCheck(this, vp);
 
-            var _this12 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
+            var _this19 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
 
-            _this12.setAttribute("width", 1);
-            _this12.setAttribute("height", 1);
-            _this12.setAttribute("top", 0);
-            _this12.setAttribute("left", 0);
-            return _this12;
+            _this19.setAttribute("width", 1);
+            _this19.setAttribute("height", 1);
+            _this19.setAttribute("top", 0);
+            _this19.setAttribute("left", 0);
+            return _this19;
         }
 
         return vp;
@@ -49940,7 +50356,7 @@ exports.default = {
 
 };
 
-},{"../update":303,"../utils/errorMessage":304,"./BaseNode":294,"./createCanvas":298,"./createMaterial":299,"three":293}],297:[function(require,module,exports){
+},{"../update":305,"../utils/errorMessage":306,"./BaseNode":294,"./adminCoreObject":299,"./createCanvas":300,"./createMaterial":301,"three":293}],298:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -50244,7 +50660,23 @@ var Style = function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Style;
 
-},{"../utils/traverse":305,"three":293}],298:[function(require,module,exports){
+},{"../utils/traverse":307,"three":293}],299:[function(require,module,exports){
+"use strict";
+
+var list = {};
+function getGomlElement(coreObject) {
+    return list[coreObject.id];
+}
+exports.getGomlElement = getGomlElement;
+function setCoreObject(element) {
+    if (typeof element.coreObject.id !== "number") {
+        return;
+    }
+    list[element.coreObject.id] = element;
+}
+exports.setCoreObject = setCoreObject;
+
+},{}],300:[function(require,module,exports){
 "use strict";
 
 function createCanvas() {
@@ -50269,7 +50701,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = createCanvas;
 ;
 
-},{}],299:[function(require,module,exports){
+},{}],301:[function(require,module,exports){
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -50300,7 +50732,7 @@ exports.default = function (value) {
     return new THREE[value.type + "Material"](value.value);
 };
 
-},{"three":293}],300:[function(require,module,exports){
+},{"three":293}],302:[function(require,module,exports){
 "use strict";
 
 var NodeList_1 = require("./NodeList");
@@ -50317,7 +50749,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 ;
 
-},{"../utils/errorMessage":304,"./NodeList":296}],301:[function(require,module,exports){
+},{"../utils/errorMessage":306,"./NodeList":297}],303:[function(require,module,exports){
 "use strict";
 
 require("babel-polyfill");
@@ -50363,13 +50795,13 @@ var JthreeInit = function JthreeInit() {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = JthreeInit;
 
-},{"./Goml/GomlDoc":295,"./update":303,"babel-polyfill":1,"mithril":291,"three":293}],302:[function(require,module,exports){
+},{"./Goml/GomlDoc":296,"./update":305,"babel-polyfill":1,"mithril":291,"three":293}],304:[function(require,module,exports){
 "use strict";
 
 var Init_1 = require("./Init");
 Init_1.default();
 
-},{"./Init":301}],303:[function(require,module,exports){
+},{"./Init":303}],305:[function(require,module,exports){
 "use strict";
 
 var updateGomlList = [];
@@ -50377,7 +50809,7 @@ var updateJ3List = [];
 var pastTime = 0;
 var delta = void 0;
 var i = void 0;
-!function loop(time) {
+(function loop(time) {
     requestAnimationFrame(loop);
     delta = time - pastTime;
     pastTime = time;
@@ -50387,7 +50819,7 @@ var i = void 0;
     for (i = 0; i < updateJ3List.length; i++) {
         updateJ3List[i](delta, time);
     }
-}(0);
+})(0);
 function updateJ3(callback, append) {
     if (append === false) {
         var index = updateJ3List.indexOf(callback);
@@ -50411,7 +50843,7 @@ function updateGoml(callback, append) {
 }
 exports.updateGoml = updateGoml;
 
-},{}],304:[function(require,module,exports){
+},{}],306:[function(require,module,exports){
 "use strict";
 
 function default_1(message) {
@@ -50421,7 +50853,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 ;
 
-},{}],305:[function(require,module,exports){
+},{}],307:[function(require,module,exports){
 "use strict";
 
 function traverse(element, callback, value) {
@@ -50435,4 +50867,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = traverse;
 ;
 
-},{}]},{},[302]);
+},{}]},{},[304]);

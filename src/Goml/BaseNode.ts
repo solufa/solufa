@@ -1,8 +1,10 @@
 import Style from "./Style";
+import EventNode from "./EventNode";
 
 const idList = []; // Todo: appendとremoveの反映
+const classList = [];
 
-class BaseNode {
+class BaseNode extends EventNode {
 
   public childNodes = [];
   public attributes = [];
@@ -11,32 +13,14 @@ class BaseNode {
   public nodeName: string;
   public ownerDocument;
   public id: string;
+  public className: string;
   public style;
 
   private attrList = {};
-  private listenerList = {};
 
   public attrHook( name, value ) { return; }
   public removeHook( childNode ) { return; }
   public appendHook( childNode ) { return; }
-
-  public addEventListener( type: string, listener ): void {
-    const list = this.listenerList[ type ] || [];
-    list.push( listener );
-    this.listenerList[ type ] = list;
-  }
-
-  public removeEventListener( type: string, listener ): void {
-    const list = this.listenerList[ type ];
-    if ( !list ) {
-      return;
-    }
-    const index = list.indexOf( listener );
-
-    if ( index !== -1 ) {
-      list.splice( index, 1 );
-    }
-  }
 
   public setAttribute( name: string, value: any ): void {
     if ( this.attrList[ name ] ) {
@@ -48,12 +32,33 @@ class BaseNode {
       });
     }
 
-    if ( name === "id" ) {
+    switch ( name ) {
+    case "id":
+
       if ( this.id ) {
         delete idList[ this.id ];
       }
       this.id = value;
       idList[ value ] = this;
+      break;
+    case "class":
+
+      if ( this.className ) {
+        this.className.split( " " ).forEach( function( className ) {
+          classList[ className ].splice( classList[ className ].indexOf( this ), 1 );
+          if ( !classList[ className ].length ) {
+            delete classList[ className ];
+          }
+        }.bind( this ));
+      }
+
+      this.className = value;
+      value.split( " " ).forEach( function( className ) {
+        const list = classList[ className ] || [];
+        list.push( this );
+        classList[ className ] = list;
+      }.bind( this ));
+      break;
     }
 
     this.attrHook( name, value );
@@ -70,6 +75,7 @@ class BaseNode {
 
     this.childNodes.push( child );
     child.parentNode = this;
+    this._resetChildHandlerTypeList();
     this.appendHook( child );
   }
 
@@ -85,6 +91,7 @@ class BaseNode {
       this.childNodes.splice( index, 0, newNode );
     }
     newNode.parentNode = this;
+    this._resetChildHandlerTypeList();
     this.appendHook( newNode );
   }
 
@@ -93,15 +100,22 @@ class BaseNode {
     if ( index !== -1 ) {
       this.childNodes.splice( index, 1 );
       childNode.parentNode = null;
+      this._resetChildHandlerTypeList();
       this.removeHook( childNode );
     }
   }
 
   public querySelector( selector: string ) {
-    return idList[ selector.slice( 1 ) ];
+    if ( /^#/.test( selector ) ) {
+      return idList[ selector.slice( 1 ) ] || null;
+    } else if ( /^\./.test( selector ) ) {
+      let list = classList[ selector.slice( 1 ) ];
+      return list ? list[ 0 ] : null;
+    }
   }
 
   constructor( tagName: string, gomlDoc ) {
+    super();
     this.tagName = this.nodeName = tagName;
     this.ownerDocument = gomlDoc;
     this.style = new Style( this );

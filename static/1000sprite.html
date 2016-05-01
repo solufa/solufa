@@ -21,15 +21,28 @@ j3( function() {
           specular: "#999"
         }
       },
+			spMtl: {
+				type: "Sprite",
+				value: {
+					map: {
+						type: "Image",
+						src: "./img/arrow.png"
+					}
+				}
+			},
 			meshPoses: [],
 			lightPos: { pos: [ 1, 10, 10 ] },
 			objPos: { posZ: -155 },
+			spStyle: {
+				posY: 3,
+				scale: 10
+			},
 			init: function() {
 	      for ( var i = 0; i < 10; i++ ) {
 					for ( var j = 0; j < 10; j++ ) {
-						//for ( var k = 0; k < 10; k++ ) {
-							this.meshPoses.push({ pos: [i*10-45,j*10-45,0] });
-						//}
+						for ( var k = 0; k < 10; k++ ) {
+							this.meshPoses.push({ pos: [i*10-45,j*10-45,k*10-45] });
+						}
 					}
 	      }
 			},
@@ -43,9 +56,7 @@ j3( function() {
 					elem.childNodes[1].style.colorG = Math.abs( Math.cos( elapsed * .0005 ) );
 					elem.childNodes[1].style.colorR = 1 - Math.abs( Math.sin( elapsed * .0005 ) );
 				});
-
-			},
-			click: function(e){console.log(e)}
+			}
 		},
     controller: function() {
 			App.vm.init();
@@ -53,9 +64,11 @@ j3( function() {
     view: function() {
       var vm = App.vm;
 
-      return <scene onclick={vm.click}>
+      return <scene>
 				<obj config={vm.rotate} style={ vm.objPos }>
-        	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
+        	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}>
+						<sprite mtl={ vm.spMtl } style={vm.spStyle}/>
+					</mesh>)}
 				</obj>
 				<cam id="cam"/>
         <light type="Dir" style={ vm.lightPos }/>
@@ -66,7 +79,7 @@ j3( function() {
 
   m.mount( j3.document.body, App );
   m.render( j3.document.head, <rdr init={{ frame: "#jthree", antialias: true, preserveDrawingBuffer: false }}>
-		<vp cam="#cam" width={.5} left={.3} height={.5} bottom={.5}/>
+		<vp cam="#cam"/>
 	</rdr> );
 });
 </script>

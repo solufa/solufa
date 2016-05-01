@@ -4,10 +4,18 @@ import errorMessage from "../utils/errorMessage";
 import { updateJ3 as update } from "../update";
 import createCanvas from "./createCanvas";
 import createMaterial from "./createMaterial";
+import { setCoreObject as setObject } from "./adminCoreObject";
+import { getGomlElement as getElement } from "./adminCoreObject";
 
 class GomlNode extends BaseNode {
-  public coreObject;
-  public sceneObject; // use only camera
+  private _coreObject;
+  get coreObject() {
+    return this._coreObject;
+  }
+  set coreObject( object ) {
+    this._coreObject = object;
+    setObject( this );
+  }
 
   public appendHook( childNode ) {// m.redrawとかでMithrilがtextNodeを生成することがある
     if ( childNode.coreObject instanceof THREE.Object3D ) {
@@ -27,6 +35,13 @@ class RdrNode extends BaseNode {
   public coreObject;
   public canvas;
   private updateFn;
+  private handlerTypes = [];
+  private newHandlerTypes = [];
+
+  private canvasHandler;
+  private setNewHandlerType;
+  private addCanvasEvent;
+  private removeCanvasEvent;
 
   public attrHook( name: string, value ) {
     if ( name === "init" ) {
@@ -62,16 +77,79 @@ class RdrNode extends BaseNode {
 
   public render(): void {
     this.coreObject.clear();
-    for ( let i = 0; i < this.childNodes.length; i++ ) {
-      this.childNodes[ i ].render( this.coreObject );
-    }
+
+    this.childNodes.forEach( child => {
+      child.render( this.coreObject ).forEach( this.setNewHandlerType );
+    });
+
+    this.newHandlerTypes.forEach( this.addCanvasEvent );
+
+    this.handlerTypes.forEach( this.removeCanvasEvent );
+
+    this.handlerTypes = this.newHandlerTypes;
+    this.newHandlerTypes.length = 0;
   }
 
   public resize( e ): void {
     this.coreObject.setSize( e.target.innerWidth, e.target.innerHeight );
-    for ( let i = 0; i < this.childNodes.length; i++ ) {
-      this.childNodes[ i ].setSize( this.canvas.width, this.canvas.height );
-    }
+    this.childNodes.forEach( child => {
+      child.setSize( this.canvas.width, this.canvas.height );
+    });
+    this.setViewport();
+  }
+
+  public setViewport() {
+    this.childNodes.forEach( child => {
+      this.coreObject.setViewport(
+        child.getAttribute( "left" ) * this.canvas.width,
+        child.getAttribute( "bottom" ) * this.canvas.height,
+        child.getAttribute( "width" ) * this.canvas.width,
+        child.getAttribute( "height" ) * this.canvas.height
+      );
+    });
+  }
+
+  public appendHook() {
+    this.setViewport();
+  }
+
+  public removeHook() {
+    this.setViewport();
+  }
+
+  constructor( tagName: string, gomlDoc ) {
+    super( tagName, gomlDoc );
+    this.canvasHandler = e => {
+      const offsetX = e.offsetX === undefined ? e.layerX : e.offsetX;
+      const offsetY = e.offsetY === undefined ? e.layerY : e.offsetY;
+
+      for ( let i = this.childNodes.length, child; i > 0; i-- ) { // 後に描画されるVPからチェック
+        child = this.childNodes[ i - 1 ];
+        if ( child._isCollision( offsetX, offsetY ) ) {
+          child._triggerEvent( e, offsetX, offsetY );
+          break;
+        }
+      }
+
+    };
+
+    this.setNewHandlerType = type => {
+      if ( this.newHandlerTypes.indexOf( type ) === -1 ) {
+        this.newHandlerTypes.push( type );
+      }
+    };
+
+    this.addCanvasEvent = type => {
+      if ( this.handlerTypes.indexOf( type ) === -1 ) {
+        this.canvas.addEventListener( type, this.canvasHandler, false );
+      }
+    };
+
+    this.removeCanvasEvent = type => {
+      if ( this.newHandlerTypes.indexOf( type ) === -1 ) {
+        this.canvas.removeEventListener( type, this.canvasHandler, false );
+      }
+    };
   }
 
 }
@@ -80,16 +158,42 @@ class VpNode extends BaseNode {
   public cameraObject;
   private width: number;
   private height: number;
+  private scene;
+  private raycaster = new THREE.Raycaster;
+  private tmpVec = new THREE.Vector3;
 
-  public render( renderer ): void {
-    if ( this.cameraObject && +this.getAttribute( "width" ) && +this.getAttribute( "height") ) {
-      renderer.setViewport(
-        +this.getAttribute( "left" ) * this.width,
-        +this.getAttribute( "top" ) * this.height,
-        +this.getAttribute( "width" ) * this.width,
-        +this.getAttribute( "height") * this.height
-      );
-      renderer.render( this.cameraObject.sceneObject, this.cameraObject );
+  public _isCollision( offsetX, offsetY ): boolean {
+    let ratioX = offsetX / this.width;
+    let ratioY = offsetY / this.height;
+
+    return ratioX > this.getAttribute( "left" )
+      && ratioX < this.getAttribute( "left" ) + this.getAttribute( "width" )
+      && ratioY < ( 1 - this.getAttribute( "bottom" ) )
+      && ratioY > ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) );
+  }
+
+  public _triggerEvent( e, offsetX, offsetY ): void {
+    let ratioX = 2 * ( offsetX - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width ) - 1;
+    let ratioY = -2 * ( offsetY
+      - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
+      ( this.getAttribute( "height" ) * this.height ) + 1;
+
+    if ( this.scene._allHandlerTypeList.indexOf( e.type ) !== -1 ) {
+      this.raycaster.setFromCamera( this.tmpVec.set( ratioX, ratioY, 0 ), this.cameraObject );
+      let result = this.raycaster.intersectObject( this.scene.coreObject, true )[ 0 ];
+
+      if ( result ) {
+        getElement( result.object ).dispatchEvent( this.ownerDocument.createEvent( e ) );
+      }
+    }
+  }
+
+  public render( renderer ) {
+    if ( this.cameraObject ) {
+      renderer.render( this.scene.coreObject, this.cameraObject );
+      return this.scene._allHandlerTypeList;
+    } else {
+      return [];
     }
   }
 
@@ -106,7 +210,12 @@ class VpNode extends BaseNode {
       if ( !cam ) {
         errorMessage( 'The cam of rdr element can not be found in the selector "' + value + '".' );
       } else {
-        cam.setScene();
+
+        let scene = cam.parentNode;
+        while ( scene.tagName !== "scene" ) {
+          scene = scene.parentNode;
+        }
+        this.scene = scene;
         this.cameraObject = cam.coreObject;
         this.setAspect();
       }
@@ -115,6 +224,15 @@ class VpNode extends BaseNode {
     case "width":
     case "height":
       this.setAspect();
+      if ( this.parentNode ) {
+        this.parentNode.setViewport();
+      }
+      break;
+    case "left":
+    case "bottom":
+      if ( this.parentNode ) {
+        this.parentNode.setViewport();
+      }
       break;
     }
   }
@@ -136,20 +254,18 @@ for ( let key in THREE ) {
 }
 
 const geoPool = [];
+const geoCorePool = [];
 const mtlPool = [];
+const mtlCorePool = [];
 
 export default {
-  body: BaseNode,
+  body: class extends BaseNode {
+    constructor( gomlDoc ) {
+      super( "body", gomlDoc );
+    }
+  },
 
   cam: class extends GomlNode {
-
-    public setScene() {
-      let scene = this.parentNode;
-      while ( scene.tagName !== "scene" ) {
-        scene = scene.parentNode;
-      }
-      this.coreObject.sceneObject = scene.coreObject;
-    }
 
     constructor( gomlDoc ) {
       super( "cam", gomlDoc );
@@ -157,7 +273,11 @@ export default {
     }
   },
 
-  head: BaseNode,
+  head: class extends BaseNode {
+    constructor( gomlDoc ) {
+      super( "head", gomlDoc );
+    }
+  },
 
   light: class extends GomlNode {
 
@@ -178,13 +298,14 @@ export default {
 
     public attrHook( name: string, value ): void {
       super.attrHook( name, value );
+      let index;
 
       switch ( name ) {
       case "geo":
-        if ( value.cacheId !== undefined ) {
-          this.coreObject.geometry = geoPool[ value.cacheId ];
+        index = geoPool.indexOf( value );
+        if ( index !== -1 ) {
+          this.coreObject.geometry = geoCorePool[ index ];
         } else {
-          value.cacheId = geoPool.length;
           if ( value.type === "Custom" ) {
             const geometry = this.coreObject.geometry = new THREE.Geometry;
             if ( value.vertices ) {
@@ -201,16 +322,18 @@ export default {
               value.value[ 4 ],
               value.value[ 5 ] );
           }
-          geoPool.push( this.coreObject.geometry );
+          geoPool.push( value );
+          geoCorePool[ geoPool.length - 1 ] = this.coreObject.geometry;
         }
         break;
 
       case "mtl":
-        if ( value.cacheId !== undefined ) {
-          this.coreObject.material = mtlPool[ value.cacheId ];
+        index = mtlPool.indexOf( value );
+        if ( index !== -1 ) {
+          this.coreObject.material = mtlCorePool[ index ];
         } else {
-          value.cacheId = mtlPool.length;
-          mtlPool.push( this.coreObject.material = createMaterial( value ) );
+          mtlPool.push( value );
+          mtlCorePool[ mtlPool.length - 1 ] = this.coreObject.material = createMaterial( value );
         }
         break;
       }
@@ -237,6 +360,12 @@ export default {
     }
   },
 
+  rdrs: class extends BaseNode {
+    constructor( gomlDoc ) {
+      super( "rdrs", gomlDoc );
+    }
+  },
+
   scene: class extends GomlNode {
 
     constructor( gomlDoc ) {
@@ -245,7 +374,11 @@ export default {
     }
   },
 
-  scenes: BaseNode,
+  scenes: class extends BaseNode {
+    constructor( gomlDoc ) {
+      super( "scenes", gomlDoc );
+    }
+  },
 
   sprite: class extends GomlNode {
 

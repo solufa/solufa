@@ -4,7 +4,7 @@ let pastTime = 0;
 let delta;
 let i;
 
-!function loop( time: number ): void {
+(function loop( time: number ): void {
   requestAnimationFrame( loop );
 
   delta = time - pastTime;
@@ -17,7 +17,7 @@ let i;
   for ( i = 0; i < updateJ3List.length; i++ ) {
     updateJ3List[ i ]( delta, time );
   }
-}( 0 );
+})( 0 );
 
 function updateJ3( callback: () => {}, append?: boolean ): void {
   if ( append === false ) {

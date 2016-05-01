@@ -14,10 +14,12 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
+        "./src/Goml/adminCoreObject.ts",
         "./src/Goml/BaseNode.ts",
         "./src/Goml/createCanvas.ts",
         "./src/Goml/createMaterial.ts",
         "./src/Goml/createNode.ts",
+        "./src/Goml/EventNode.ts",
         "./src/Goml/GomlDoc.ts",
         "./src/Goml/NodeList.ts",
         "./src/Goml/Style.ts",
