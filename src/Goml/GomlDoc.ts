@@ -1,6 +1,7 @@
 import createNode from "./createNode";
 import EventNode from "./EventNode";
 import BaseNode from "./BaseNode";
+import { idArray as idList } from "./adminIdClass";
 
 class NewEvent {
   public cancelBubble = false;
@@ -81,6 +82,10 @@ class GomlDoc extends EventNode {
 
   public createTextNode( text: string ) {// m.redrawとかでMithrilがtextNodeを生成することがある
     return new TextNode( text, this );
+  }
+
+  public getElementById( id: string ) {
+    return idList[ id ] || null;
   }
 
   constructor () {

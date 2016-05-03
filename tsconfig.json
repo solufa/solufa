@@ -14,7 +14,9 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
+        "./components/j3-Obj.ts",
         "./src/Goml/adminCoreObject.ts",
+        "./src/Goml/adminIdClass.ts",
         "./src/Goml/BaseNode.ts",
         "./src/Goml/createCanvas.ts",
         "./src/Goml/createMaterial.ts",

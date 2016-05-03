@@ -17,6 +17,13 @@ class GomlNode extends BaseNode {
     setObject( this );
   }
 
+  public attrHook( name, value ) {
+    switch ( name ) {
+    case "display":
+      this.coreObject.visible = value !== false;
+    }
+  }
+
   public appendHook( childNode ) {// m.redrawとかでMithrilがtextNodeを生成することがある
     if ( childNode.coreObject instanceof THREE.Object3D ) {
       this.coreObject.add( childNode.coreObject );
@@ -42,6 +49,9 @@ class RdrNode extends BaseNode {
   private setNewHandlerType;
   private addCanvasEvent;
   private removeCanvasEvent;
+  private renderEachVp;
+  private resizeEachVp;
+  private arrayForGetVpByReverse = [];
 
   public attrHook( name: string, value ) {
     if ( name === "init" ) {
@@ -78,9 +88,7 @@ class RdrNode extends BaseNode {
   public render(): void {
     this.coreObject.clear();
 
-    this.childNodes.forEach( child => {
-      child.render( this.coreObject ).forEach( this.setNewHandlerType );
-    });
+    this.traverseVp( this.renderEachVp );
 
     this.newHandlerTypes.forEach( this.addCanvasEvent );
 
@@ -92,29 +100,55 @@ class RdrNode extends BaseNode {
 
   public resize( e ): void {
     this.coreObject.setSize( e.target.innerWidth, e.target.innerHeight );
+    this.traverseVp( this.resizeEachVp );
+    this.dispatchEvent( this.ownerDocument.createEvent( e ) );
+  }
+
+  public pickElementByPixel( x: number, y: number ) {
+    const vps = this.getVpByReverse();
+    for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
+      vp = vps[ i ];
+      if ( vp._isCollision( x, y ) ) {
+        return vp._triggerEvent( x, y );
+      }
+    }
+  }
+
+  public pickElementByRatio( x: number, y: number ) {
+    const vps = this.getVpByReverse();
+    for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
+      vp = vps[ i ];
+      if ( vp._isCollision( x, y, true ) ) {
+        return vp._triggerEvent( x, y, null, true );
+      }
+    }
+  }
+
+  private traverseVp( callback ) {
     this.childNodes.forEach( child => {
-      child.setSize( this.canvas.width, this.canvas.height );
-    });
-    this.setViewport();
-  }
-
-  public setViewport() {
-    this.childNodes.forEach( child => {
-      this.coreObject.setViewport(
-        child.getAttribute( "left" ) * this.canvas.width,
-        child.getAttribute( "bottom" ) * this.canvas.height,
-        child.getAttribute( "width" ) * this.canvas.width,
-        child.getAttribute( "height" ) * this.canvas.height
-      );
+      if ( child.tagName === "vps" ) {
+        child.childNodes.forEach( callback );
+      } else {
+        callback( child );
+      }
     });
   }
 
-  public appendHook() {
-    this.setViewport();
-  }
+  private getVpByReverse() {
+    const vpList = this.arrayForGetVpByReverse;
 
-  public removeHook() {
-    this.setViewport();
+    for ( let i = this.childNodes.length - 1, child; i > - 1; i-- ) {
+      child = this.childNodes[ i ];
+      if ( child.tagName === "vps" ) {
+        for ( let j = child.childNodes.length - 1; j > -1; j-- ) {
+          vpList.push( child.childNodes[ j ] );
+        }
+      } else {
+        vpList.push( child );
+      }
+    }
+
+    return vpList;
   }
 
   constructor( tagName: string, gomlDoc ) {
@@ -123,11 +157,11 @@ class RdrNode extends BaseNode {
       const offsetX = e.offsetX === undefined ? e.layerX : e.offsetX;
       const offsetY = e.offsetY === undefined ? e.layerY : e.offsetY;
 
-      for ( let i = this.childNodes.length, child; i > 0; i-- ) { // 後に描画されるVPからチェック
-        child = this.childNodes[ i - 1 ];
-        if ( child._isCollision( offsetX, offsetY ) ) {
-          child._triggerEvent( e, offsetX, offsetY );
-          break;
+      const vps = this.getVpByReverse();
+      for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
+        vp = vps[ i ];
+        if ( vp._isCollision( offsetX, offsetY ) ) {
+          return vp._triggerEvent( offsetX, offsetY, e );
         }
       }
 
@@ -150,6 +184,15 @@ class RdrNode extends BaseNode {
         this.canvas.removeEventListener( type, this.canvasHandler, false );
       }
     };
+
+    this.renderEachVp = vp => {
+      vp.render( this.coreObject ).forEach( this.setNewHandlerType );
+    };
+
+    this.resizeEachVp = vp => {
+      vp.setSize( this.canvas.width, this.canvas.height );
+    };
+
   }
 
 }
@@ -162,9 +205,9 @@ class VpNode extends BaseNode {
   private raycaster = new THREE.Raycaster;
   private tmpVec = new THREE.Vector3;
 
-  public _isCollision( offsetX, offsetY ): boolean {
-    let ratioX = offsetX / this.width;
-    let ratioY = offsetY / this.height;
+  public _isCollision( offsetX, offsetY, isRatio ): boolean {
+    let ratioX = isRatio ? offsetX : offsetX / this.width;
+    let ratioY = isRatio ? offsetY : offsetY / this.height;
 
     return ratioX > this.getAttribute( "left" )
       && ratioX < this.getAttribute( "left" ) + this.getAttribute( "width" )
@@ -172,24 +215,40 @@ class VpNode extends BaseNode {
       && ratioY > ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) );
   }
 
-  public _triggerEvent( e, offsetX, offsetY ): void {
-    let ratioX = 2 * ( offsetX - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width ) - 1;
-    let ratioY = -2 * ( offsetY
-      - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
+  public _triggerEvent( offsetX, offsetY, e, isRatio ) {
+    let ratioX = isRatio ? 2 * offsetX - 1
+      : 2 * ( offsetX - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width ) - 1;
+    let ratioY = isRatio ? -2 * offsetY + 1
+      : - 2 * ( offsetY - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
       ( this.getAttribute( "height" ) * this.height ) + 1;
 
-    if ( this.scene._allHandlerTypeList.indexOf( e.type ) !== -1 ) {
+    if ( !e || this.scene._allHandlerTypeList.indexOf( e.type ) !== -1 ) {
       this.raycaster.setFromCamera( this.tmpVec.set( ratioX, ratioY, 0 ), this.cameraObject );
       let result = this.raycaster.intersectObject( this.scene.coreObject, true )[ 0 ];
 
       if ( result ) {
-        getElement( result.object ).dispatchEvent( this.ownerDocument.createEvent( e ) );
+        let target = result.object;
+        while ( !getElement( target ) ) {
+          target = target.parent;
+        }
+
+        if ( e ) {
+          getElement( target ).dispatchEvent( this.ownerDocument.createEvent( e ) );
+        } else {
+          return getElement( target );
+        }
       }
     }
   }
 
   public render( renderer ) {
     if ( this.cameraObject ) {
+      renderer.setViewport(
+        +this.getAttribute( "left" ) * this.width,
+        +this.getAttribute( "bottom" ) * this.height,
+        +this.getAttribute( "width" ) * this.width,
+        +this.getAttribute( "height") * this.height
+      );
       renderer.render( this.scene.coreObject, this.cameraObject );
       return this.scene._allHandlerTypeList;
     } else {
@@ -224,15 +283,9 @@ class VpNode extends BaseNode {
     case "width":
     case "height":
       this.setAspect();
-      if ( this.parentNode ) {
-        this.parentNode.setViewport();
-      }
       break;
     case "left":
     case "bottom":
-      if ( this.parentNode ) {
-        this.parentNode.setViewport();
-      }
       break;
     }
   }
@@ -323,7 +376,7 @@ export default {
               value.value[ 5 ] );
           }
           geoPool.push( value );
-          geoCorePool[ geoPool.length - 1 ] = this.coreObject.geometry;
+          geoCorePool.push( this.coreObject.geometry );
         }
         break;
 
@@ -333,7 +386,7 @@ export default {
           this.coreObject.material = mtlCorePool[ index ];
         } else {
           mtlPool.push( value );
-          mtlCorePool[ mtlPool.length - 1 ] = this.coreObject.material = createMaterial( value );
+          mtlCorePool.push( this.coreObject.material = createMaterial( value ) );
         }
         break;
       }
@@ -411,6 +464,12 @@ export default {
       this.setAttribute( "height", 1 );
       this.setAttribute( "top", 0 );
       this.setAttribute( "left", 0 );
+    }
+  },
+
+  vps: class extends BaseNode {
+    constructor( gomlDoc ) {
+      super( "vps", gomlDoc );
     }
   },
 };

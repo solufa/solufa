@@ -1,8 +1,6 @@
 import Style from "./Style";
 import EventNode from "./EventNode";
-
-const idList = []; // Todo: appendとremoveの反映
-const classList = [];
+import { idArray as idList, classArray as classList } from "./adminIdClass"; // Todo: appendとremoveの反映
 
 class BaseNode extends EventNode {
 
@@ -12,11 +10,45 @@ class BaseNode extends EventNode {
   public tagName: string;
   public nodeName: string;
   public ownerDocument;
-  public id: string;
-  public className: string;
   public style;
 
   private attrList = {};
+  private _id;
+  private _className;
+
+  get id(): string {
+      return this._id;
+  }
+  set id( value: string ) {
+    if ( this._id ) {
+      delete idList[ this._id ];
+    }
+    this._id = value;
+    idList[ value ] = this;
+  }
+
+  get className(): string {
+      return this.getAttribute( "class" );
+  }
+  set className( value: string ) {
+    if ( !value ) { return; } // Todo: removeClass
+
+    if ( this._className ) {
+      this._className.split( " " ).forEach( className => {
+        classList[ className ].splice( classList[ className ].indexOf( this ), 1 );
+        if ( !classList[ className ].length ) {
+          delete classList[ className ];
+        }
+      });
+    }
+
+    this._className = value;
+    value.split( " " ).forEach( className => {
+      const list = classList[ className ] || [];
+      list.push( this );
+      classList[ className ] = list;
+    });
+  }
 
   public attrHook( name, value ) { return; }
   public removeHook( childNode ) { return; }
@@ -34,30 +66,10 @@ class BaseNode extends EventNode {
 
     switch ( name ) {
     case "id":
-
-      if ( this.id ) {
-        delete idList[ this.id ];
-      }
       this.id = value;
-      idList[ value ] = this;
       break;
     case "class":
-
-      if ( this.className ) {
-        this.className.split( " " ).forEach( function( className ) {
-          classList[ className ].splice( classList[ className ].indexOf( this ), 1 );
-          if ( !classList[ className ].length ) {
-            delete classList[ className ];
-          }
-        }.bind( this ));
-      }
-
       this.className = value;
-      value.split( " " ).forEach( function( className ) {
-        const list = classList[ className ] || [];
-        list.push( this );
-        classList[ className ] = list;
-      }.bind( this ));
       break;
     }
 
@@ -112,6 +124,22 @@ class BaseNode extends EventNode {
       let list = classList[ selector.slice( 1 ) ];
       return list ? list[ 0 ] : null;
     }
+  }
+
+  public querySelectorAll( selector: string ) {
+    const arr = [];
+    if ( /^#/.test( selector ) ) {
+      let elem = idList[ selector.slice( 1 ) ];
+      if ( elem ) {
+        arr.push( elem );
+      }
+    } else if ( /^\./.test( selector ) ) {
+      let list = classList[ selector.slice( 1 ) ];
+      if ( list ) {
+        Array.prototype.push.apply( arr, list );
+      }
+    }
+    return arr;
   }
 
   constructor( tagName: string, gomlDoc ) {
