@@ -6,6 +6,7 @@ const watchify = require('watchify');
 const webserver = require('gulp-webserver');
 const uglify = require('gulp-uglify');
 const rename = require('gulp-rename');
+const msx = require('gulp-msx');
 
 const br = watchify(
   browserify({
@@ -23,25 +24,10 @@ function bundle() {
   .pipe(gulp.dest('./static/js'));
 }
 
-const bundles = [];
-
-[ 'Obj' ].forEach( function( name ) {
-  const br = watchify(
-    browserify({
-      entries: './components/j3-' + name + '.ts'
-    })
-    .plugin('tsify', {target: 'es6'})
-    .transform("babelify")
-  );
-
-  function bundle() {
-    return br.bundle()
-    .pipe(source('j3-' + name + '.js'))
-    .pipe(gulp.dest('./static/js'));
-  }
-
-  br.on( "update", bundle );
-  bundles.push( bundle );
+gulp.task( "msx", function() {
+  gulp.src('./static/msxComponents/*.js')
+  .pipe(msx({harmony: true}))
+  .pipe(gulp.dest('./static/components'));
 });
 
 gulp.task( "default", function() {
@@ -52,9 +38,8 @@ gulp.task( "default", function() {
       open: true
     }));
   bundle();
-  bundles.forEach( function( bundle ) {
-    bundle();
-  });
+
+  gulp.watch('./static/msxComponents/*.js', ['msx']);
 });
 
 gulp.task('compress', function() {

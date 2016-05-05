@@ -49878,6 +49878,8 @@ exports.default = GomlDoc;
 },{"./BaseNode":294,"./EventNode":295,"./adminIdClass":300,"./createNode":303}],297:[function(require,module,exports){
 "use strict";
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -49912,6 +49914,11 @@ var GomlNode = function (_BaseNode_1$default) {
             switch (name) {
                 case "display":
                     this.coreObject.visible = value !== false;
+                    break;
+                case "castShadow":
+                case "receiveShadow":
+                    this.coreObject[name] = !!value;
+                    break;
             }
         }
     }, {
@@ -49926,6 +49933,29 @@ var GomlNode = function (_BaseNode_1$default) {
         value: function removeHook(childNode) {
             if (childNode.coreObject instanceof THREE.Object3D) {
                 this.coreObject.remove(childNode.coreObject);
+            }
+        }
+    }, {
+        key: "setHelper",
+        value: function setHelper(type, object) {
+            if (object) {
+                var helper = new THREE[type + "Helper"](object);
+                this.coreObject.add(helper);
+                if (type === "Camera") {
+                    this._cameraHelper = helper;
+                } else {
+                    this._lightHelper = helper;
+                }
+            } else {
+                var _helper = void 0;
+                if (type === "Camera") {
+                    _helper = this._cameraHelper;
+                    delete this._cameraHelper;
+                } else {
+                    _helper = this._lightHelper;
+                    delete this._lightHelper;
+                }
+                this.coreObject.remove(_helper);
             }
         }
     }, {
@@ -49989,30 +50019,46 @@ var RdrNode = function (_BaseNode_1$default2) {
     }
 
     _createClass(RdrNode, [{
+        key: "appendHook",
+        value: function appendHook(child) {
+            if (child.tagName === "vp") {
+                this.resizeEachVp(child);
+            } else {
+                for (var i = 0, l = child.childNodes.length; i < l; i++) {
+                    this.resizeEachVp(child.childNodes[i]);
+                }
+            }
+        }
+    }, {
         key: "attrHook",
         value: function attrHook(name, value) {
-            if (name === "init") {
-                if (this.coreObject) {
-                    this.coreObject.resetGLState();
-                    this.coreObject.dispose();
-                    this.canvas = null;
-                    this.coreObject = null;
-                    update_1.updateJ3(this.updateFn, false);
-                    this.updateFn = null;
-                }
-                var frame = document.querySelector(value.frame);
-                if (!frame) {
-                    errorMessage_1.default('HTML element can not be found by the selector of "' + value.frame + '".');
-                    return;
-                }
-                var canvasData = createCanvas_1.default();
-                frame.appendChild(canvasData.container);
-                this.canvas = value.canvas = canvasData.canvas;
-                window.frames[window.frames.length - 1].addEventListener("resize", this.resize.bind(this), false);
-                this.coreObject = new THREE.WebGLRenderer(value);
-                this.coreObject.autoClear = false;
-                this.updateFn = this.render.bind(this);
-                update_1.updateJ3(this.updateFn);
+            switch (name) {
+                case "init":
+                    if (this.coreObject) {
+                        this.coreObject.resetGLState();
+                        this.coreObject.dispose();
+                        this.canvas = null;
+                        this.coreObject = null;
+                        update_1.updateJ3(this.updateFn, false);
+                        this.updateFn = null;
+                    }
+                    var frame = document.querySelector(value.frame);
+                    if (!frame) {
+                        errorMessage_1.default('HTML element can not be found by the selector of "' + value.frame + '".');
+                        return;
+                    }
+                    var canvasData = createCanvas_1.default();
+                    frame.appendChild(canvasData.container);
+                    this.canvas = value.canvas = canvasData.canvas;
+                    window.frames[window.frames.length - 1].addEventListener("resize", this.resize.bind(this), false);
+                    this.coreObject = new THREE.WebGLRenderer(value);
+                    this.coreObject.autoClear = false;
+                    this.updateFn = this.render.bind(this);
+                    update_1.updateJ3(this.updateFn);
+                    this.coreObject.setSize(frame.clientWidth, frame.clientHeight);
+                    break;
+                case "enableShadow":
+                    this.coreObject.shadowMap.enabled = value;
             }
         }
     }, {
@@ -50173,9 +50219,6 @@ var VpNode = function (_BaseNode_1$default3) {
                 case "height":
                     this.setAspect();
                     break;
-                case "left":
-                case "bottom":
-                    break;
             }
         }
     }, {
@@ -50227,6 +50270,17 @@ exports.default = {
             return _this5;
         }
 
+        _createClass(cam, [{
+            key: "attrHook",
+            value: function attrHook(name, value) {
+                _get(Object.getPrototypeOf(cam.prototype), "attrHook", this).call(this, name, value);
+                if (/^(fov|near|far)$/.test(name)) {
+                    this.coreObject[name] = value;
+                    this.coreObject.updateProjectionMatrix();
+                }
+            }
+        }]);
+
         return cam;
     }(GomlNode),
 
@@ -50255,8 +50309,33 @@ exports.default = {
             key: "attrHook",
             value: function attrHook(name, value) {
                 _get(Object.getPrototypeOf(light.prototype), "attrHook", this).call(this, name, value);
-                if (name === "type") {
-                    this.coreObject = new THREE[lightType[value]]();
+                switch (name) {
+                    case "type":
+                        this.coreObject = new THREE[lightType[value]]();
+                        break;
+                    case "helper":
+                        if (!this.coreObject) {
+                            break;
+                        }
+                        this.setHelper(lightType[this.getAttribute("type")], value && this.coreObject);
+                        if (this.getAttribute("castShadow")) {
+                            this.setHelper("Camera", value && this.coreObject.shadow.camera);
+                        }
+                        break;
+                    case "castShadow":
+                        if ((typeof value === "undefined" ? "undefined" : _typeof(value)) === "object") {
+                            var shadow = this.coreObject.shadow;
+                            for (var _key2 in value) {
+                                if (_key2 === "mapSize") {
+                                    shadow.mapSize.width = shadow.mapSize.height = value[_key2];
+                                } else if (_key2 === "bias") {
+                                    shadow.bias = value[_key2];
+                                } else {
+                                    shadow.camera[_key2] = value[_key2];
+                                }
+                            }
+                        }
+                        break;
                 }
             }
         }]);

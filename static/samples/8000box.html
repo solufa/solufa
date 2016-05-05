@@ -1,0 +1,100 @@
+<script src="js/jThree.js"></script>
+<script>
+document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livereload.js?ext=Chrome&amp;extver=2.1.0"></scr' + 'ipt>' );
+</script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>-->
+<script src="js/MSXTransformer.js"></script>
+<script src="msxComponents/j3-OrbitVp.js" type="text/msx;harmony=true"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<script type="text/msx;harmony=true">
+j3( function() {
+
+  var App = {
+		vm: {
+			geo: {
+        type: "BoxBuffer",
+        value: [ 5, 5, 5 ]
+      },
+			mtl: {
+        type: "MeshPhong",
+        value: {
+          color: "#00f",
+          specular: "#999"
+        }
+      },
+			meshPoses: [],
+			lightPos: { pos: [ 1, 10, 10 ] },
+			camPos: { posZ: 355 },
+			objsPos: [],
+			init: function() {
+	      for ( var i = 0; i < 10; i++ ) {
+					for ( var j = 0; j < 10; j++ ) {
+						for ( var k = 0; k < 10; k++ ) {
+							this.meshPoses.push({ pos: [i*10-45,j*10-45,k*10-45] });
+						}
+					}
+	      }
+
+				for ( var i = 0; i < 2; i++ ) {
+					for ( var j = 0; j < 2; j++ ) {
+						for ( var k = 0; k < 2; k++ ) {
+							this.objsPos.push({ pos: [ ( i - .5 ) * 120, ( j - .5 ) * 120, ( k - .5 ) * 120 ] });
+						}
+					}
+				}
+			},
+			first: true,
+			rotate: function( elem ) {
+				if ( App.vm.first ) {
+					App.vm.first = false;
+					j3.update( function( delta, elapsed ) {
+						elem.style.rotateY += delta * .0002;
+						elem.style.rotateX += delta * .0002;
+						elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .0005 ) );
+
+						elem.childNodes[1].childNodes[1].style.colorB = Math.abs( Math.sin( elapsed * .0005 ) );
+						elem.childNodes[1].childNodes[1].style.colorG = Math.abs( Math.cos( elapsed * .0005 ) );
+						elem.childNodes[1].childNodes[1].style.colorR = 1 - Math.abs( Math.sin( elapsed * .0005 ) );
+					});
+				}
+
+			}
+		},
+    controller: function() {
+			App.vm.init();
+    },
+    view: function() {
+      var vm = App.vm;
+
+      return <scene>
+				<obj config={vm.rotate} style={ vm.objPos }>
+					{ vm.objsPos.map( pos => <obj style={ pos }>
+						{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
+					</obj>
+					)}
+				</obj>
+				<cam id="cam" style={vm.camPos}/>
+        <light type="Dir" style={ vm.lightPos }/>
+				<light type="Amb"/>
+      </scene>;
+    }
+  };
+
+
+  m.mount( j3.document.body, App );
+  m.render( j3.document.head, <rdr init={{ frame: "#jthree", antialias: true, preserveDrawingBuffer: false }}>
+		<OrbitVp cam="#cam"/>
+	</rdr> );
+});
+</script>
+
+<style>
+#jthree {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+<div id="jthree"></div>

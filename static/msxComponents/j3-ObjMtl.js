@@ -749,9 +749,7 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
 					// Diffuse texture map
 
-					params[ 'map' ] = this.loadTexture( this.baseUrl + value );
-					params[ 'map' ].wrapS = this.wrap;
-					params[ 'map' ].wrapT = this.wrap;
+					params[ 'map' ] = this.loadTexture( this.baseUrl + value, this.wrap );
 
 					break;
 
@@ -793,9 +791,7 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
 					if ( params[ 'bumpMap' ] ) break; // Avoid loading twice.
 
-					params[ 'bumpMap' ] = this.loadTexture( this.baseUrl + value );
-					params[ 'bumpMap' ].wrapS = this.wrap;
-					params[ 'bumpMap' ].wrapT = this.wrap;
+					params[ 'bumpMap' ] = this.loadTexture( this.baseUrl + value, this.wrap );
 
 					break;
 
@@ -811,8 +807,59 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
 	},
 
+	loadTexture: function() {
+		var urlList = [];
+		var txrList = [];
+		return function( url, wrap ) {
+			var index = urlList.indexOf( url );
+			var txr = null;
 
-	loadTexture: function ( url, mapping, onLoad, onProgress, onError ) {
+			if ( index !== -1 ) {
+				var tmp = txrList[ index ];
+				if ( tmp ) {
+					txr = tmp[ wrap ];
+				}
+			} else {
+				index = urlList.length;
+				urlList.push( url );
+				txrList.push([]);
+			}
+
+			if ( !txr ) {
+				txr = new THREE.Texture( new Image );
+        txr.image.addEventListener( "load", function() {
+          this.needsUpdate = true;
+        }.bind( txr ), false );
+
+        txr.sourceFile = url;
+        txr.image.crossOrigin = "anonymous";
+        txr.image.src = url;
+        var arr = txrList[ index ];
+				arr[ wrap ] = txr;
+				txr.wrapS = txr.wrapT = wrap;
+			} else {
+				txr.needsUpdate = true;
+			}
+
+			return txr;
+		};
+	}()
+
+	/*loadTexture: function( url ) {
+		var txr = new THREE.Texture( new Image );
+    txr.image.addEventListener( "load", function() {
+      this.needsUpdate = true;
+    }.bind( txr ), false );
+
+    txr.sourceFile = url;
+    txr.image.crossOrigin = "anonymous";
+    txr.image.src = url;
+
+		return txr;
+	}*/
+
+
+	/*loadTexture: function ( url, mapping, onLoad, onProgress, onError ) {
 
 		var texture;
 		var loader = THREE.Loader.Handlers.get( url );
@@ -831,7 +878,7 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
 		return texture;
 
-	}
+	}*/
 
 };
 
@@ -841,8 +888,8 @@ THREE.EventDispatcher.prototype.apply( THREE.MTLLoader.prototype );
 var models = [];
 var srcList = [];
 
-function load( elem ) {
-	if ( elem.coreObject.children.length ) return;
+function load( elem, isInit ) {
+	if ( isInit ) return;
 
   var src = elem.getAttribute( "src" );
   var index = srcList.indexOf( src );
@@ -851,7 +898,14 @@ function load( elem ) {
     if ( Array.isArray( models[ index ] ) ) { // waiting
       models[ index ].push( elem );
     } else {
-      elem.coreObject.add( models[ index ].clone( true ) );
+			var castShadow = elem.getAttribute( "castShadow" );
+			var receiveShadow = elem.getAttribute( "receiveShadow" );
+			var clone = models[ index ].clone( true );
+			clone.traverse( function( target ) {
+				target.castShadow = castShadow;
+				target.receiveShadow = receiveShadow;
+			});
+      elem.coreObject.add( clone );
     }
   } else {
     srcList.push( src );
@@ -860,7 +914,14 @@ function load( elem ) {
 
     new THREE.OBJLoader().load( src, function( model ) {
       models[ index ].forEach( function( element ) {
-        element.coreObject.add( model.clone( true ) );
+				var castShadow = element.getAttribute( "castShadow" );
+				var receiveShadow = element.getAttribute( "receiveShadow" );
+				var clone = model.clone( true );
+				clone.traverse( function( target ) {
+					target.castShadow = castShadow;
+					target.receiveShadow = receiveShadow;
+				});
+        element.coreObject.add( clone );
       });
       models[ index ] = model;
     });
@@ -871,7 +932,7 @@ var Obj = {
   controller: function( attrs ) {
   },
   view: function( ctrl, attrs ) {
-    return <obj id={attrs.id} class={attrs.class} style={attrs.style} src={attrs.src} config={load}/>;
+    return <obj id={attrs.id} class={attrs.class} castShadow={attrs.castShadow} receiveShadow={attrs.receiveShadow} style={attrs.style} src={attrs.src} config={load}/>;
   }
 };
 

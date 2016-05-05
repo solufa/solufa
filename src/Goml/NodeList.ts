@@ -9,6 +9,9 @@ import { getGomlElement as getElement } from "./adminCoreObject";
 
 class GomlNode extends BaseNode {
   private _coreObject;
+  private _lightHelper;
+  private _cameraHelper;
+
   get coreObject() {
     return this._coreObject;
   }
@@ -21,6 +24,11 @@ class GomlNode extends BaseNode {
     switch ( name ) {
     case "display":
       this.coreObject.visible = value !== false;
+      break;
+    case "castShadow":
+    case "receiveShadow":
+      this.coreObject[ name ] = !!value;
+      break;
     }
   }
 
@@ -33,6 +41,28 @@ class GomlNode extends BaseNode {
   public removeHook( childNode ) {
     if ( childNode.coreObject instanceof THREE.Object3D ) {
       this.coreObject.remove( childNode.coreObject );
+    }
+  }
+
+  public setHelper( type, object ) {
+    if ( object ) {
+      const helper = new THREE[ type + "Helper" ]( object );
+      this.coreObject.add( helper );
+      if ( type === "Camera" ) {
+        this._cameraHelper = helper;
+      } else {
+        this._lightHelper = helper;
+      }
+    } else {
+      let helper;
+      if ( type === "Camera" ) {
+        helper = this._cameraHelper;
+        delete this._cameraHelper;
+      } else {
+        helper = this._lightHelper;
+        delete this._lightHelper;
+      }
+      this.coreObject.remove( helper );
     }
   }
 
@@ -53,9 +83,19 @@ class RdrNode extends BaseNode {
   private resizeEachVp;
   private arrayForGetVpByReverse = [];
 
-  public attrHook( name: string, value ) {
-    if ( name === "init" ) {
+  public appendHook( child ) {
+    if ( child.tagName === "vp" ) {
+      this.resizeEachVp( child );
+    } else {
+      for ( let i = 0, l = child.childNodes.length; i < l; i++ ) {
+        this.resizeEachVp( child.childNodes[ i ] );
+      }
+    }
+  }
 
+  public attrHook( name: string, value ) {
+    switch ( name ) {
+    case "init":
       if ( this.coreObject ) {
         this.coreObject.resetGLState();
         this.coreObject.dispose();
@@ -82,6 +122,11 @@ class RdrNode extends BaseNode {
 
       this.updateFn = this.render.bind( this );
       update( this.updateFn );
+
+      this.coreObject.setSize( frame.clientWidth, frame.clientHeight );
+      break;
+    case "enableShadow":
+      this.coreObject.shadowMap.enabled = value;
     }
   }
 
@@ -284,9 +329,6 @@ class VpNode extends BaseNode {
     case "height":
       this.setAspect();
       break;
-    case "left":
-    case "bottom":
-      break;
     }
   }
 
@@ -320,6 +362,15 @@ export default {
 
   cam: class extends GomlNode {
 
+    public attrHook( name: string, value ): void {
+      super.attrHook( name, value );
+
+      if ( /^(fov|near|far)$/.test( name ) ) {
+        this.coreObject[ name ] = value;
+        this.coreObject.updateProjectionMatrix();
+      }
+    }
+
     constructor( gomlDoc ) {
       super( "cam", gomlDoc );
       this.coreObject = new THREE.PerspectiveCamera;
@@ -337,8 +388,32 @@ export default {
     public attrHook( name: string, value ): void {
       super.attrHook( name, value );
 
-      if ( name === "type" ) {
+      switch ( name ) {
+      case "type":
         this.coreObject = new THREE[ lightType[ value ] ];
+        break;
+      case "helper":
+        if ( !this.coreObject ) { break; }
+        this.setHelper( lightType[ this.getAttribute( "type" ) ], value && this.coreObject );
+        if ( this.getAttribute( "castShadow" ) ) {
+          this.setHelper( "Camera", value && this.coreObject.shadow.camera );
+        }
+        break;
+      case "castShadow":
+        if ( typeof value === "object" ) {
+          const shadow = this.coreObject.shadow;
+          for ( let key in value ) {
+            if ( key === "mapSize" ) {
+              shadow.mapSize.width =
+              shadow.mapSize.height = value[ key ];
+            } else if ( key === "bias" ) {
+              shadow.bias = value[ key ];
+            } else {
+              shadow.camera[ key ] = value[ key ];
+            }
+          }
+        }
+        break;
       }
     }
 
