@@ -35,6 +35,7 @@ class Style {
   private target;
   private _lookAt;
   private _opacity;
+  private _vec3 = new THREE.Vector3;
 
   get pos() {
     return toArr( this.target.coreObject.position );
@@ -59,6 +60,17 @@ class Style {
   }
   set posZ( z: number ) {
     this.target.coreObject.position.z = z;
+  }
+
+  get worldPos() {
+    this._vec3.copy( this.target.coreObject.position );
+    this.target.parentNode.coreObject.localToWorld( this._vec3 );
+    return toArr( this._vec3 );
+  }
+
+  set worldPos( array ) {
+    this.target.coreObject.position.set( array[ 0 ], array[ 1 ], array[ 2 ] );
+    this.target.parentNode.coreObject.worldToLocal( this.target.coreObject.position );
   }
 
   get scale() {

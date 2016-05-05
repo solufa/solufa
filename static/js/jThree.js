@@ -50568,6 +50568,7 @@ var Style = function () {
     function Style(target) {
         _classCallCheck(this, Style);
 
+        this._vec3 = new THREE.Vector3();
         this.target = target;
         this._lookAt = new THREE.Vector3();
         this._opacity = 1;
@@ -50604,6 +50605,17 @@ var Style = function () {
         },
         set: function set(z) {
             this.target.coreObject.position.z = z;
+        }
+    }, {
+        key: "worldPos",
+        get: function get() {
+            this._vec3.copy(this.target.coreObject.position);
+            this.target.parentNode.coreObject.localToWorld(this._vec3);
+            return toArr(this._vec3);
+        },
+        set: function set(array) {
+            this.target.coreObject.position.set(array[0], array[1], array[2]);
+            this.target.parentNode.coreObject.worldToLocal(this.target.coreObject.position);
         }
     }, {
         key: "scale",
