@@ -50039,7 +50039,7 @@ var RdrNode = function (_BaseNode_1$default2) {
                         this.coreObject.dispose();
                         this.canvas = null;
                         this.coreObject = null;
-                        update_1.updateJ3(this.updateFn, false);
+                        update_1.updateS(this.updateFn, false);
                         this.updateFn = null;
                     }
                     var frame = document.querySelector(value.frame);
@@ -50054,7 +50054,7 @@ var RdrNode = function (_BaseNode_1$default2) {
                     this.coreObject = new THREE.WebGLRenderer(value);
                     this.coreObject.autoClear = false;
                     this.updateFn = this.render.bind(this);
-                    update_1.updateJ3(this.updateFn);
+                    update_1.updateS(this.updateFn);
                     this.coreObject.setSize(frame.clientWidth, frame.clientHeight);
                     break;
                 case "enableShadow":
@@ -50951,11 +50951,11 @@ var m = require("mithril");
 var three = require("three");
 var GomlDoc_1 = require("./Goml/GomlDoc");
 var update_1 = require("./update");
-var JthreeInit = function JthreeInit() {
+var SolufaInit = function SolufaInit() {
     var canvas = document.createElement("canvas");
     var hasGl = window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
     var waitLoadFn = [];
-    function jThree(callback, error) {
+    function Solufa(callback, error) {
         if (!hasGl) {
             error();
         } else if (document.readyState === "loading") {
@@ -50973,10 +50973,10 @@ var JthreeInit = function JthreeInit() {
         }, false);
     }
     var doc = new GomlDoc_1.default();
-    jThree.m = m;
-    jThree.THREE = three;
-    jThree.update = update_1.updateJ3;
-    jThree.document = doc;
+    Solufa.m = m;
+    Solufa.THREE = three;
+    Solufa.update = update_1.updateS;
+    Solufa.document = doc;
     m.deps({
         cancelAnimationFrame: window.cancelAnimationFrame,
         document: doc,
@@ -50984,10 +50984,10 @@ var JthreeInit = function JthreeInit() {
         requestAnimationFrame: window.requestAnimationFrame
     });
     window.m = m;
-    window.jThree = window.j3 = jThree;
+    window.Solufa = window.S = Solufa;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = JthreeInit;
+exports.default = SolufaInit;
 
 },{"./Goml/GomlDoc":296,"./update":306,"babel-polyfill":1,"mithril":291,"three":293}],305:[function(require,module,exports){
 "use strict";
@@ -50999,7 +50999,7 @@ Init_1.default();
 "use strict";
 
 var updateGomlList = [];
-var updateJ3List = [];
+var updateSList = [];
 var pastTime = 0;
 var delta = void 0;
 var i = void 0;
@@ -51007,24 +51007,24 @@ var i = void 0;
     requestAnimationFrame(loop);
     delta = time - pastTime;
     pastTime = time;
+    for (i = 0; i < updateSList.length; i++) {
+        updateSList[i](delta, time);
+    }
     for (i = 0; i < updateGomlList.length; i++) {
         updateGomlList[i](delta, time);
     }
-    for (i = 0; i < updateJ3List.length; i++) {
-        updateJ3List[i](delta, time);
-    }
 })(0);
-function updateJ3(callback, append) {
+function updateS(callback, append) {
     if (append === false) {
-        var index = updateJ3List.indexOf(callback);
+        var index = updateSList.indexOf(callback);
         if (index !== -1) {
-            updateJ3List.splice(index, 1);
+            updateSList.splice(index, 1);
         }
     } else {
-        updateJ3List.push(callback);
+        updateSList.push(callback);
     }
 }
-exports.updateJ3 = updateJ3;
+exports.updateS = updateS;
 function updateGoml(callback, append) {
     if (append === false) {
         var index = updateGomlList.indexOf(callback);

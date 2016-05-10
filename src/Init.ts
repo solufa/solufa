@@ -7,16 +7,16 @@ import * as m from "mithril";
 import * as three from "three";
 
 import GomlDoc from "./Goml/GomlDoc";
-import { updateJ3 as update } from "./update";
+import { updateS as update } from "./update";
 
-const JthreeInit = () => {
+const SolufaInit = () => {
 
   const canvas = document.createElement( "canvas" );
   const hasGl = (<any>window).WebGLRenderingContext && ( canvas.getContext( "webgl" ) || canvas.getContext( "experimental-webgl" ) );
 
   let waitLoadFn = [];
 
-  function jThree( callback: ( m: any ) => void, error: () => void ) {
+  function Solufa( callback: ( m: any ) => void, error: () => void ) {
     if ( !hasGl ) {
       error();
     } else if ( document.readyState === "loading" ) {
@@ -37,10 +37,10 @@ const JthreeInit = () => {
 
   const doc = new GomlDoc;
 
-  (<any>jThree).m = m;
-  (<any>jThree).THREE = three;
-  (<any>jThree).update = update;
-  (<any>jThree).document = doc;
+  (<any>Solufa).m = m;
+  (<any>Solufa).THREE = three;
+  (<any>Solufa).update = update;
+  (<any>Solufa).document = doc;
 
   m.deps({
     cancelAnimationFrame: window.cancelAnimationFrame,
@@ -50,8 +50,8 @@ const JthreeInit = () => {
   });
 
   (<any>window).m = m;
-  (<any>window).jThree  = (<any>window).j3  = jThree;
+  (<any>window).Solufa  = (<any>window).S  = Solufa;
 
 };
 
-export default JthreeInit;
+export default SolufaInit;

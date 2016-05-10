@@ -1,13 +1,13 @@
-<script src="js/jThree.js"></script>
+<script src="../js/Solufa.js"></script>
 <script>
 document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livereload.js?ext=Chrome&amp;extver=2.1.0"></scr' + 'ipt>' );
 </script>
 <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>-->
-<script src="js/MSXTransformer.js"></script>
-<script src="msxComponents/j3-OrbitVp.js" type="text/msx;harmony=true"></script>
+<script src="../js/MSXTransformer.js"></script>
+<script src="../components/Solufa-OrbitVp.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/msx;harmony=true">
-j3( function() {
+S( function() {
 
   var App = {
 		vm: {
@@ -47,7 +47,7 @@ j3( function() {
 			rotate: function( elem ) {
 				if ( App.vm.first ) {
 					App.vm.first = false;
-					j3.update( function( delta, elapsed ) {
+					S.update( function( delta, elapsed ) {
 						elem.style.rotateY += delta * .0002;
 						elem.style.rotateX += delta * .0002;
 						elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .0005 ) );
@@ -81,15 +81,15 @@ j3( function() {
   };
 
 
-  m.mount( j3.document.body, App );
-  m.render( j3.document.head, <rdr init={{ frame: "#jthree", antialias: true, preserveDrawingBuffer: false }}>
+  m.mount( S.document.body, App );
+  m.render( S.document.head, <rdr init={{ frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}>
 		<OrbitVp cam="#cam"/>
 	</rdr> );
 });
 </script>
 
 <style>
-#jthree {
+#solufa {
   position: fixed;
   top: 0;
   left: 0;
@@ -97,4 +97,4 @@ j3( function() {
   height: 100%;
 }
 </style>
-<div id="jthree"></div>
+<div id="solufa"></div>

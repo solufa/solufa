@@ -1,6 +1,6 @@
-jThree( function( m ) {
+Solufa( function( m ) {
 
-var THREE = jThree.THREE;
+var THREE = Solufa.THREE;
 
 /**
  * @author richt / http://richt.me
@@ -114,10 +114,10 @@ function jyro( elem ) {
 
   if ( ctrl.enabled ) {
     ctrl.gyro.connect();
-    jThree.update( ctrl.gyro.update );
+    Solufa.update( ctrl.gyro.update );
   } else {
     ctrl.gyro.disconnect();
-    jThree.update( ctrl.gyro.update, false );
+    Solufa.update( ctrl.gyro.update, false );
   }
 
 }
@@ -131,7 +131,7 @@ var JyroSync = {
   },
   view: function( ctrl, attrs, child ) {
     ctrl.enabled = attrs.enabled !== false;
-    return <obj id={attrs.id} class={attrs.class} ctrl={ctrl} config={jyro}>{child}</obj>;
+    return {tag: "obj", attrs: {id:attrs.id, class:attrs.class, ctrl:ctrl, config:jyro}, children: [child]};
   }
 };
 

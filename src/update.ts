@@ -1,5 +1,5 @@
 const updateGomlList = [];
-const updateJ3List = [];
+const updateSList = [];
 let pastTime = 0;
 let delta;
 let i;
@@ -10,23 +10,23 @@ let i;
   delta = time - pastTime;
   pastTime = time;
 
+  for ( i = 0; i < updateSList.length; i++ ) {
+    updateSList[ i ]( delta, time );
+  }
+
   for ( i = 0; i < updateGomlList.length; i++ ) {
     updateGomlList[ i ]( delta, time );
   }
-
-  for ( i = 0; i < updateJ3List.length; i++ ) {
-    updateJ3List[ i ]( delta, time );
-  }
 })( 0 );
 
-function updateJ3( callback: () => {}, append?: boolean ): void {
+function updateS( callback: () => {}, append?: boolean ): void {
   if ( append === false ) {
-    const index = updateJ3List.indexOf( callback );
+    const index = updateSList.indexOf( callback );
     if ( index !== -1 ) {
-      updateJ3List.splice( index, 1 );
+      updateSList.splice( index, 1 );
     }
   } else {
-    updateJ3List.push( callback );
+    updateSList.push( callback );
   }
 }
 
@@ -41,4 +41,4 @@ function updateGoml( callback: () => {}, append?: boolean ): void {
   }
 }
 
-export { updateJ3, updateGoml };
+export { updateS, updateGoml };

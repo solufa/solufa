@@ -1,6 +1,6 @@
-jThree( function( m ) {
+Solufa( function( m ) {
 
-var THREE = jThree.THREE;
+var THREE = Solufa.THREE;
 
 /**
  * @author qiao / https://github.com/qiao
@@ -1043,14 +1043,13 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 function set( elem ) {
 	var cam = elem.ownerDocument.body.querySelector( elem.getAttribute( "cam" ) );
 	var orbit = new THREE.OrbitControls( cam.coreObject, elem.parentNode.canvas, cam.style.lookAt );
-	jThree.update( orbit.update.bind( orbit ) );
 }
 
 var Orbit = {
   controller: function( attrs ) {
   },
   view: function( ctrl, attrs ) {
-    return {tag: "vp", attrs: {cam:attrs.cam, config:set, width:attrs.width || 1, height:attrs.height || 1, bottom:attrs.bottom || 0, left:attrs.left || 0}};
+    return <vp cam={attrs.cam} config={set} width={attrs.width || 1 } height={attrs.height || 1 } bottom={attrs.bottom || 0 } left={attrs.left || 0}/>;
   }
 };
 

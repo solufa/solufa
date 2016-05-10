@@ -1,6 +1,6 @@
-jThree( function( m ) {
+Solufa( function( m ) {
 
-var THREE = jThree.THREE;
+var THREE = Solufa.THREE;
 
 /**
  * @author mrdoob / http://mrdoob.com/
@@ -932,7 +932,7 @@ var Obj = {
   controller: function( attrs ) {
   },
   view: function( ctrl, attrs ) {
-    return {tag: "obj", attrs: {id:attrs.id, class:attrs.class, castShadow:attrs.castShadow, receiveShadow:attrs.receiveShadow, style:attrs.style, src:attrs.src, config:load}};
+    return <obj id={attrs.id} class={attrs.class} castShadow={attrs.castShadow} receiveShadow={attrs.receiveShadow} style={attrs.style} src={attrs.src} config={load}/>;
   }
 };
 

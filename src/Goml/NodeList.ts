@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import BaseNode from "./BaseNode";
 import errorMessage from "../utils/errorMessage";
-import { updateJ3 as update } from "../update";
+import { updateS as update } from "../update";
 import createCanvas from "./createCanvas";
 import createMaterial from "./createMaterial";
 import { setCoreObject as setObject } from "./adminCoreObject";

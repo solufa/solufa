@@ -1,7 +1,7 @@
-jThree( function( m ) {
+Solufa( function( m ) {
 
   var id = 0;
-  var j3 = jThree;
+  var j3 = Solufa;
 
   function load( elem, isInit, ctx ) {
     var ctrl = this.attrs.ctrl;
