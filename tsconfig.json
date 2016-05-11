@@ -18,6 +18,7 @@
         "./src/Goml/adminIdClass.ts",
         "./src/Goml/BaseNode.ts",
         "./src/Goml/createCanvas.ts",
+        "./src/Goml/createGeometry.ts",
         "./src/Goml/createMaterial.ts",
         "./src/Goml/createNode.ts",
         "./src/Goml/EventNode.ts",

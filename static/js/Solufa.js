@@ -49880,7 +49880,7 @@ var GomlDoc = function (_EventNode_1$default) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GomlDoc;
 
-},{"./BaseNode":294,"./EventNode":295,"./adminIdClass":300,"./createNode":303}],297:[function(require,module,exports){
+},{"./BaseNode":294,"./EventNode":295,"./adminIdClass":300,"./createNode":304}],297:[function(require,module,exports){
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -49901,6 +49901,7 @@ var errorMessage_1 = require("../utils/errorMessage");
 var update_1 = require("../update");
 var createCanvas_1 = require("./createCanvas");
 var createMaterial_1 = require("./createMaterial");
+var createGeometry_1 = require("./createGeometry");
 var adminCoreObject_1 = require("./adminCoreObject");
 var adminCoreObject_2 = require("./adminCoreObject");
 
@@ -50385,23 +50386,64 @@ exports.default = {
         return light;
     }(GomlNode),
 
-    mesh: function (_GomlNode3) {
-        _inherits(mesh, _GomlNode3);
+    line: function (_GomlNode3) {
+        _inherits(line, _GomlNode3);
+
+        function line(gomlDoc) {
+            _classCallCheck(this, line);
+
+            var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(line).call(this, "line", gomlDoc));
+
+            _this8.coreObject = new THREE.Line();
+            return _this8;
+        }
+
+        _createClass(line, [{
+            key: "setAttrHook",
+            value: function setAttrHook(name, value) {
+                _get(Object.getPrototypeOf(line.prototype), "setAttrHook", this).call(this, name, value);
+                var index = void 0;
+                switch (name) {
+                    case "geo":
+                        index = geoPool.indexOf(value);
+                        if (index !== -1) {
+                            this.coreObject.geometry = geoCorePool[index];
+                        } else {
+                            geoPool.push(value);
+                            geoCorePool.push(this.coreObject.geometry = createGeometry_1.default(value));
+                        }
+                        break;
+                    case "mtl":
+                        index = mtlPool.indexOf(value);
+                        if (index !== -1) {
+                            this.coreObject.material = mtlCorePool[index];
+                        } else {
+                            mtlPool.push(value);
+                            mtlCorePool.push(this.coreObject.material = createMaterial_1.default(value));
+                        }
+                        break;
+                }
+            }
+        }]);
+
+        return line;
+    }(GomlNode),
+
+    mesh: function (_GomlNode4) {
+        _inherits(mesh, _GomlNode4);
 
         function mesh(gomlDoc) {
             _classCallCheck(this, mesh);
 
-            var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
+            var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(mesh).call(this, "mesh", gomlDoc));
 
-            _this8.coreObject = new THREE.Mesh();
-            return _this8;
+            _this9.coreObject = new THREE.Mesh();
+            return _this9;
         }
 
         _createClass(mesh, [{
             key: "setAttrHook",
             value: function setAttrHook(name, value) {
-                var _this9 = this;
-
                 _get(Object.getPrototypeOf(mesh.prototype), "setAttrHook", this).call(this, name, value);
                 var index = void 0;
                 switch (name) {
@@ -50410,20 +50452,8 @@ exports.default = {
                         if (index !== -1) {
                             this.coreObject.geometry = geoCorePool[index];
                         } else {
-                            if (value.type === "Custom") {
-                                (function () {
-                                    var geometry = _this9.coreObject.geometry = new THREE.Geometry();
-                                    if (value.vertices) {
-                                        value.vertices.forEach(function (vec) {
-                                            geometry.vertices.push(new THREE.Vector3(vec[0], vec[1], vec[2]));
-                                        });
-                                    }
-                                })();
-                            } else {
-                                this.coreObject.geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
-                            }
                             geoPool.push(value);
-                            geoCorePool.push(this.coreObject.geometry);
+                            geoCorePool.push(this.coreObject.geometry = createGeometry_1.default(value));
                         }
                         break;
                     case "mtl":
@@ -50442,8 +50472,8 @@ exports.default = {
         return mesh;
     }(GomlNode),
 
-    obj: function (_GomlNode4) {
-        _inherits(obj, _GomlNode4);
+    obj: function (_GomlNode5) {
+        _inherits(obj, _GomlNode5);
 
         function obj(gomlDoc) {
             _classCallCheck(this, obj);
@@ -50455,6 +50485,49 @@ exports.default = {
         }
 
         return obj;
+    }(GomlNode),
+
+    points: function (_GomlNode6) {
+        _inherits(points, _GomlNode6);
+
+        function points(gomlDoc) {
+            _classCallCheck(this, points);
+
+            var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(points).call(this, "points", gomlDoc));
+
+            _this11.coreObject = new THREE.Points();
+            return _this11;
+        }
+
+        _createClass(points, [{
+            key: "setAttrHook",
+            value: function setAttrHook(name, value) {
+                _get(Object.getPrototypeOf(points.prototype), "setAttrHook", this).call(this, name, value);
+                var index = void 0;
+                switch (name) {
+                    case "geo":
+                        index = geoPool.indexOf(value);
+                        if (index !== -1) {
+                            this.coreObject.geometry = geoCorePool[index];
+                        } else {
+                            geoPool.push(value);
+                            geoCorePool.push(this.coreObject.geometry = createGeometry_1.default(value));
+                        }
+                        break;
+                    case "mtl":
+                        index = mtlPool.indexOf(value);
+                        if (index !== -1) {
+                            this.coreObject.material = mtlCorePool[index];
+                        } else {
+                            mtlPool.push(value);
+                            mtlCorePool.push(this.coreObject.material = createMaterial_1.default(value));
+                        }
+                        break;
+                }
+            }
+        }]);
+
+        return points;
     }(GomlNode),
 
     rdr: function (_RdrNode) {
@@ -50481,16 +50554,16 @@ exports.default = {
         return rdrs;
     }(BaseNode_1.default),
 
-    scene: function (_GomlNode5) {
-        _inherits(scene, _GomlNode5);
+    scene: function (_GomlNode7) {
+        _inherits(scene, _GomlNode7);
 
         function scene(gomlDoc) {
             _classCallCheck(this, scene);
 
-            var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
+            var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(scene).call(this, "scene", gomlDoc));
 
-            _this13.coreObject = new THREE.Scene();
-            return _this13;
+            _this14.coreObject = new THREE.Scene();
+            return _this14;
         }
 
         return scene;
@@ -50508,16 +50581,16 @@ exports.default = {
         return scenes;
     }(BaseNode_1.default),
 
-    sprite: function (_GomlNode6) {
-        _inherits(sprite, _GomlNode6);
+    sprite: function (_GomlNode8) {
+        _inherits(sprite, _GomlNode8);
 
         function sprite(gomlDoc) {
             _classCallCheck(this, sprite);
 
-            var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(sprite).call(this, "sprite", gomlDoc));
+            var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(sprite).call(this, "sprite", gomlDoc));
 
-            _this15.coreObject = new THREE.Sprite();
-            return _this15;
+            _this16.coreObject = new THREE.Sprite();
+            return _this16;
         }
 
         _createClass(sprite, [{
@@ -50546,13 +50619,13 @@ exports.default = {
         function vp(gomlDoc) {
             _classCallCheck(this, vp);
 
-            var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
+            var _this17 = _possibleConstructorReturn(this, Object.getPrototypeOf(vp).call(this, "vp", gomlDoc));
 
-            _this16.setAttribute("width", 1);
-            _this16.setAttribute("height", 1);
-            _this16.setAttribute("top", 0);
-            _this16.setAttribute("left", 0);
-            return _this16;
+            _this17.setAttribute("width", 1);
+            _this17.setAttribute("height", 1);
+            _this17.setAttribute("top", 0);
+            _this17.setAttribute("left", 0);
+            return _this17;
         }
 
         return vp;
@@ -50572,7 +50645,7 @@ exports.default = {
 
 };
 
-},{"../update":306,"../utils/errorMessage":307,"./BaseNode":294,"./adminCoreObject":299,"./createCanvas":301,"./createMaterial":302,"three":293}],298:[function(require,module,exports){
+},{"../update":307,"../utils/errorMessage":308,"./BaseNode":294,"./adminCoreObject":299,"./createCanvas":301,"./createGeometry":302,"./createMaterial":303,"three":293}],298:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -50880,7 +50953,7 @@ var Style = function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Style;
 
-},{"../utils/traverse":308,"three":293}],299:[function(require,module,exports){
+},{"../utils/traverse":309,"three":293}],299:[function(require,module,exports){
 "use strict";
 
 var list = {};
@@ -50932,6 +51005,23 @@ exports.default = createCanvas;
 },{}],302:[function(require,module,exports){
 "use strict";
 
+var THREE = require("three");
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = function (value) {
+    if (value.type === "Buffer") {
+        var geometry = new THREE.BufferGeometry();
+        for (var key in value.attrs) {
+            geometry.addAttribute(key, new THREE.BufferAttribute(new Float32Array(value.attrs[key]), key === "uv" ? 2 : 3));
+        }
+        return geometry;
+    } else {
+        return new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
+    }
+};
+
+},{"three":293}],303:[function(require,module,exports){
+"use strict";
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var THREE = require("three");
@@ -50960,7 +51050,7 @@ exports.default = function (value) {
     return new THREE[value.type + "Material"](value.value);
 };
 
-},{"three":293}],303:[function(require,module,exports){
+},{"three":293}],304:[function(require,module,exports){
 "use strict";
 
 var NodeList_1 = require("./NodeList");
@@ -50977,7 +51067,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 ;
 
-},{"../utils/errorMessage":307,"./NodeList":297}],304:[function(require,module,exports){
+},{"../utils/errorMessage":308,"./NodeList":297}],305:[function(require,module,exports){
 "use strict";
 
 require("babel-polyfill");
@@ -51025,13 +51115,13 @@ var SolufaInit = function SolufaInit(version) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = SolufaInit;
 
-},{"./Goml/GomlDoc":296,"./update":306,"babel-polyfill":1,"mithril":291,"three":293}],305:[function(require,module,exports){
+},{"./Goml/GomlDoc":296,"./update":307,"babel-polyfill":1,"mithril":291,"three":293}],306:[function(require,module,exports){
 "use strict";
 
 var Init_1 = require("./Init");
 Init_1.default("v0.1.0");
 
-},{"./Init":304}],306:[function(require,module,exports){
+},{"./Init":305}],307:[function(require,module,exports){
 "use strict";
 
 var updateGomlList = [];
@@ -51073,7 +51163,7 @@ function updateGoml(callback, append) {
 }
 exports.updateGoml = updateGoml;
 
-},{}],307:[function(require,module,exports){
+},{}],308:[function(require,module,exports){
 "use strict";
 
 function default_1(message) {
@@ -51083,7 +51173,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 ;
 
-},{}],308:[function(require,module,exports){
+},{}],309:[function(require,module,exports){
 "use strict";
 
 function traverse(element, callback, value) {
@@ -51097,4 +51187,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = traverse;
 ;
 
-},{}]},{},[305]);
+},{}]},{},[306]);

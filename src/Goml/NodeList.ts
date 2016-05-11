@@ -4,6 +4,7 @@ import errorMessage from "../utils/errorMessage";
 import { updateS as update } from "../update";
 import createCanvas from "./createCanvas";
 import createMaterial from "./createMaterial";
+import createGeometry from "./createGeometry";
 import { setCoreObject as setObject } from "./adminCoreObject";
 import { getGomlElement as getElement } from "./adminCoreObject";
 
@@ -455,6 +456,41 @@ export default {
     }
   },
 
+  line: class extends GomlNode {
+
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
+      let index;
+
+      switch ( name ) {
+      case "geo":
+        index = geoPool.indexOf( value );
+        if ( index !== -1 ) {
+          this.coreObject.geometry = geoCorePool[ index ];
+        } else {
+          geoPool.push( value );
+          geoCorePool.push( this.coreObject.geometry = createGeometry( value ) );
+        }
+        break;
+
+      case "mtl":
+        index = mtlPool.indexOf( value );
+        if ( index !== -1 ) {
+          this.coreObject.material = mtlCorePool[ index ];
+        } else {
+          mtlPool.push( value );
+          mtlCorePool.push( this.coreObject.material = createMaterial( value ) );
+        }
+        break;
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "line", gomlDoc );
+      this.coreObject = new THREE.Line;
+    }
+  },
+
   mesh: class extends GomlNode {
 
     public setAttrHook( name: string, value ): void {
@@ -467,24 +503,8 @@ export default {
         if ( index !== -1 ) {
           this.coreObject.geometry = geoCorePool[ index ];
         } else {
-          if ( value.type === "Custom" ) {
-            const geometry = this.coreObject.geometry = new THREE.Geometry;
-            if ( value.vertices ) {
-              value.vertices.forEach( function( vec ) {
-                geometry.vertices.push( new THREE.Vector3( vec[ 0 ], vec[ 1 ], vec[ 2 ] ) );
-              });
-            }
-          } else {
-            this.coreObject.geometry = new THREE[ value.type + "Geometry" ](
-              value.value[ 0 ],
-              value.value[ 1 ],
-              value.value[ 2 ],
-              value.value[ 3 ],
-              value.value[ 4 ],
-              value.value[ 5 ] );
-          }
           geoPool.push( value );
-          geoCorePool.push( this.coreObject.geometry );
+          geoCorePool.push( this.coreObject.geometry = createGeometry( value ) );
         }
         break;
 
@@ -511,6 +531,41 @@ export default {
     constructor( gomlDoc ) {
       super( "obj", gomlDoc );
       this.coreObject = new THREE.Object3D;
+    }
+  },
+
+  points: class extends GomlNode {
+
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
+      let index;
+
+      switch ( name ) {
+      case "geo":
+        index = geoPool.indexOf( value );
+        if ( index !== -1 ) {
+          this.coreObject.geometry = geoCorePool[ index ];
+        } else {
+          geoPool.push( value );
+          geoCorePool.push( this.coreObject.geometry = createGeometry( value ) );
+        }
+        break;
+
+      case "mtl":
+        index = mtlPool.indexOf( value );
+        if ( index !== -1 ) {
+          this.coreObject.material = mtlCorePool[ index ];
+        } else {
+          mtlPool.push( value );
+          mtlCorePool.push( this.coreObject.material = createMaterial( value ) );
+        }
+        break;
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "points", gomlDoc );
+      this.coreObject = new THREE.Points;
     }
   },
 
