@@ -9,7 +9,7 @@ import * as three from "three";
 import GomlDoc from "./Goml/GomlDoc";
 import { updateS as update } from "./update";
 
-const SolufaInit = () => {
+const SolufaInit = ( version: string ) => {
 
   const canvas = document.createElement( "canvas" );
   const hasGl = (<any>window).WebGLRenderingContext && ( canvas.getContext( "webgl" ) || canvas.getContext( "experimental-webgl" ) );
@@ -41,6 +41,7 @@ const SolufaInit = () => {
   (<any>Solufa).THREE = three;
   (<any>Solufa).update = update;
   (<any>Solufa).document = doc;
+  (<any>Solufa).version = version;
 
   m.deps({
     cancelAnimationFrame: window.cancelAnimationFrame,
@@ -51,6 +52,9 @@ const SolufaInit = () => {
 
   (<any>window).m = m;
   (<any>window).Solufa  = (<any>window).S  = Solufa;
+
+  console.log( "%cSolufa " + version,
+    "font-size: 250%; text-shadow: 1px 1px 2px rgba(0,0,0,.8); color: #fff; font-weight: bold; font-family: Georgia; font-style: italic;" );
 
 };
 

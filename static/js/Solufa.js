@@ -50971,7 +50971,7 @@ var m = require("mithril");
 var three = require("three");
 var GomlDoc_1 = require("./Goml/GomlDoc");
 var update_1 = require("./update");
-var SolufaInit = function SolufaInit() {
+var SolufaInit = function SolufaInit(version) {
     var canvas = document.createElement("canvas");
     var hasGl = window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
     var waitLoadFn = [];
@@ -50997,6 +50997,7 @@ var SolufaInit = function SolufaInit() {
     Solufa.THREE = three;
     Solufa.update = update_1.updateS;
     Solufa.document = doc;
+    Solufa.version = version;
     m.deps({
         cancelAnimationFrame: window.cancelAnimationFrame,
         document: doc,
@@ -51005,6 +51006,7 @@ var SolufaInit = function SolufaInit() {
     });
     window.m = m;
     window.Solufa = window.S = Solufa;
+    console.log("%cSolufa " + version, "font-size: 250%; text-shadow: 1px 1px 2px rgba(0,0,0,.8); color: #fff; font-weight: bold; font-family: Georgia; font-style: italic;");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = SolufaInit;
@@ -51013,7 +51015,7 @@ exports.default = SolufaInit;
 "use strict";
 
 var Init_1 = require("./Init");
-Init_1.default();
+Init_1.default("v0.1.0");
 
 },{"./Init":304}],306:[function(require,module,exports){
 "use strict";

@@ -1,2 +1,2 @@
 import Init from "./Init";
-Init();
+Init( "v0.1.0" );
