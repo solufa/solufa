@@ -33,7 +33,9 @@ S( function() {
 					}
 	      }
 			},
-			rotate: function( elem ) {
+			rotate: function( elem, isInit ) {
+				if ( isInit ) return;
+				
 				S.update( function( delta, elapsed ) {
 					elem.style.rotateY += delta * .0002;
 					elem.style.rotateX += delta * .0002;
@@ -43,6 +45,9 @@ S( function() {
 					elem.childNodes[ 0 ].style.colorG = Math.abs( Math.cos( elapsed * .0005 ) );
 					elem.childNodes[ 0 ].style.colorB = 1 - Math.abs( Math.sin( elapsed * .0005 ) );
 				});
+			},
+			click: function(e) {
+				console.log(e)
 			}
 		},
     controller: function() {
@@ -53,7 +58,7 @@ S( function() {
 
       return <scene>
 				<obj config={vm.rotate} style={ vm.objPos }>
-        	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
+        	{ vm.meshPoses.map( v => <mesh onclick={vm.click} geo={vm.geo} mtl={vm.mtl} style={v}/>)}
 				</obj>
 				<cam id="cam"/>
         <light type="Dir" style={ vm.lightPos }/>

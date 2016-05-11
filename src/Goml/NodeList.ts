@@ -169,7 +169,7 @@ class RdrNode extends BaseNode {
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y ) ) {
-        return vp._triggerEvent( x, y );
+        return vp.pickElementByPixel( x, y );
       }
     }
   }
@@ -179,7 +179,7 @@ class RdrNode extends BaseNode {
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y, true ) ) {
-        return vp._triggerEvent( x, y, null, true );
+        return vp.pickElementByRatio( x, y );
       }
     }
   }
@@ -196,6 +196,7 @@ class RdrNode extends BaseNode {
 
   private getVpByReverse() {
     const vpList = this.arrayForGetVpByReverse;
+    vpList.length = 0;
 
     for ( let i = this.childNodes.length - 1, child; i > - 1; i-- ) {
       child = this.childNodes[ i ];
@@ -275,29 +276,39 @@ class VpNode extends BaseNode {
       && ratioY > ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) );
   }
 
-  public _triggerEvent( offsetX, offsetY, e, isRatio ) {
-    let ratioX = isRatio ? 2 * offsetX - 1
-      : 2 * ( offsetX - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width ) - 1;
-    let ratioY = isRatio ? -2 * offsetY + 1
-      : - 2 * ( offsetY - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
-      ( this.getAttribute( "height" ) * this.height ) + 1;
+  public _triggerEvent( offsetX, offsetY, e ) {
 
-    if ( !e || this.scene._allHandlerTypeList.indexOf( e.type ) !== -1 ) {
-      this.raycaster.setFromCamera( this.tmpVec.set( ratioX, ratioY, 0 ), this.cameraObject );
-      let result = this.raycaster.intersectObject( this.scene.coreObject, true )[ 0 ];
-
+    if ( this.scene._allHandlerTypeList.indexOf( e.type ) !== -1 ) {
+      const result = this.pickElementByPixel( offsetX, offsetY );
       if ( result ) {
-        let target = result.object;
-        while ( !getElement( target ) ) {
-          target = target.parent;
-        }
-
-        if ( e ) {
-          getElement( target ).dispatchEvent( this.ownerDocument.createEvent( e ) );
-        } else {
-          return getElement( target );
-        }
+        result.dispatchEvent( this.ownerDocument.createEvent( e ) );
       }
+    }
+  }
+
+  public pickElementByPixel( x: number, y: number ) {
+    const ratioX = ( x - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width );
+    const ratioY = ( y - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
+      ( this.getAttribute( "height" ) * this.height );
+    return this.pickElementByRatio( ratioX, ratioY );
+  }
+
+  public pickElementByRatio( x: number, y: number ) {
+    const ratioX = 2 * x - 1;
+    const ratioY = -2 * y + 1;
+
+    this.raycaster.setFromCamera( this.tmpVec.set( ratioX, ratioY, 0 ), this.cameraObject );
+    const result = this.raycaster.intersectObject( this.scene.coreObject, true )[ 0 ];
+
+    if ( result ) {
+      let target = result.object;
+      while ( !getElement( target ) ) {
+        target = target.parent;
+      }
+
+      return getElement( target );
+    } else {
+      return null;
     }
   }
 

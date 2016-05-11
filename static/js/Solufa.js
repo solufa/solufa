@@ -50106,7 +50106,7 @@ var RdrNode = function (_BaseNode_1$default2) {
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y)) {
-                    return vp._triggerEvent(x, y);
+                    return vp.pickElementByPixel(x, y);
                 }
             }
         }
@@ -50117,7 +50117,7 @@ var RdrNode = function (_BaseNode_1$default2) {
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y, true)) {
-                    return vp._triggerEvent(x, y, null, true);
+                    return vp.pickElementByRatio(x, y);
                 }
             }
         }
@@ -50136,6 +50136,7 @@ var RdrNode = function (_BaseNode_1$default2) {
         key: "getVpByReverse",
         value: function getVpByReverse() {
             var vpList = this.arrayForGetVpByReverse;
+            vpList.length = 0;
             for (var i = this.childNodes.length - 1, child; i > -1; i--) {
                 child = this.childNodes[i];
                 if (child.tagName === "vps") {
@@ -50181,23 +50182,36 @@ var VpNode = function (_BaseNode_1$default3) {
         }
     }, {
         key: "_triggerEvent",
-        value: function _triggerEvent(offsetX, offsetY, e, isRatio) {
-            var ratioX = isRatio ? 2 * offsetX - 1 : 2 * (offsetX - this.getAttribute("left") * this.width) / (this.getAttribute("width") * this.width) - 1;
-            var ratioY = isRatio ? -2 * offsetY + 1 : -2 * (offsetY - (1 - this.getAttribute("bottom") - this.getAttribute("height")) * this.height) / (this.getAttribute("height") * this.height) + 1;
-            if (!e || this.scene._allHandlerTypeList.indexOf(e.type) !== -1) {
-                this.raycaster.setFromCamera(this.tmpVec.set(ratioX, ratioY, 0), this.cameraObject);
-                var result = this.raycaster.intersectObject(this.scene.coreObject, true)[0];
+        value: function _triggerEvent(offsetX, offsetY, e) {
+            if (this.scene._allHandlerTypeList.indexOf(e.type) !== -1) {
+                var result = this.pickElementByPixel(offsetX, offsetY);
                 if (result) {
-                    var target = result.object;
-                    while (!adminCoreObject_2.getGomlElement(target)) {
-                        target = target.parent;
-                    }
-                    if (e) {
-                        adminCoreObject_2.getGomlElement(target).dispatchEvent(this.ownerDocument.createEvent(e));
-                    } else {
-                        return adminCoreObject_2.getGomlElement(target);
-                    }
+                    result.dispatchEvent(this.ownerDocument.createEvent(e));
                 }
+            }
+        }
+    }, {
+        key: "pickElementByPixel",
+        value: function pickElementByPixel(x, y) {
+            var ratioX = (x - this.getAttribute("left") * this.width) / (this.getAttribute("width") * this.width);
+            var ratioY = (y - (1 - this.getAttribute("bottom") - this.getAttribute("height")) * this.height) / (this.getAttribute("height") * this.height);
+            return this.pickElementByRatio(ratioX, ratioY);
+        }
+    }, {
+        key: "pickElementByRatio",
+        value: function pickElementByRatio(x, y) {
+            var ratioX = 2 * x - 1;
+            var ratioY = -2 * y + 1;
+            this.raycaster.setFromCamera(this.tmpVec.set(ratioX, ratioY, 0), this.cameraObject);
+            var result = this.raycaster.intersectObject(this.scene.coreObject, true)[0];
+            if (result) {
+                var target = result.object;
+                while (!adminCoreObject_2.getGomlElement(target)) {
+                    target = target.parent;
+                }
+                return adminCoreObject_2.getGomlElement(target);
+            } else {
+                return null;
             }
         }
     }, {
