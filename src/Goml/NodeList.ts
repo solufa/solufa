@@ -20,15 +20,30 @@ class GomlNode extends BaseNode {
     setObject( this );
   }
 
-  public attrHook( name, value ) {
+  public setAttrHook( name, value ) {
     switch ( name ) {
     case "display":
       this.coreObject.visible = value !== false;
+      break;
+    case "rotateOrder":
+      this.coreObject.rotation.order = value;
       break;
     case "castShadow":
     case "receiveShadow":
       this.coreObject[ name ] = !!value;
       break;
+    }
+  }
+
+  public getAttrHook( name ) {
+    switch ( name ) {
+    case "display":
+      return this.coreObject.visible;
+    case "rotateOrder":
+      return this.coreObject.rotation.order;
+    case "castShadow":
+    case "receiveShadow":
+      return this.coreObject[ name ];
     }
   }
 
@@ -93,7 +108,7 @@ class RdrNode extends BaseNode {
     }
   }
 
-  public attrHook( name: string, value ) {
+  public setAttrHook( name: string, value ) {
     switch ( name ) {
     case "init":
       if ( this.coreObject ) {
@@ -307,7 +322,7 @@ class VpNode extends BaseNode {
     this.setAspect();
   }
 
-  public attrHook( name: string, value ): void {
+  public setAttrHook( name: string, value ): void {
     switch ( name ) {
     case "cam":
       const cam = this.ownerDocument.body.querySelector( value );
@@ -362,12 +377,19 @@ export default {
 
   cam: class extends GomlNode {
 
-    public attrHook( name: string, value ): void {
-      super.attrHook( name, value );
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
 
       if ( /^(fov|near|far)$/.test( name ) ) {
         this.coreObject[ name ] = value;
         this.coreObject.updateProjectionMatrix();
+      }
+    }
+
+    public getAttrHook( name: string ) {
+
+      if ( /^(fov|near|far)$/.test( name ) ) {
+        return this.coreObject[ name ];
       }
     }
 
@@ -385,8 +407,8 @@ export default {
 
   light: class extends GomlNode {
 
-    public attrHook( name: string, value ): void {
-      super.attrHook( name, value );
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
 
       switch ( name ) {
       case "type":
@@ -424,8 +446,8 @@ export default {
 
   mesh: class extends GomlNode {
 
-    public attrHook( name: string, value ): void {
-      super.attrHook( name, value );
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
       let index;
 
       switch ( name ) {
@@ -510,8 +532,8 @@ export default {
 
   sprite: class extends GomlNode {
 
-    public attrHook( name: string, value ): void {
-      super.attrHook( name, value );
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
 
       switch ( name ) {
       case "mtl":

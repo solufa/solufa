@@ -123,13 +123,6 @@ class Style {
     this.target.coreObject.up.z = z;
   }
 
-  get rotateOrder(): string {
-    return this.target.coreObject.rotation.order;
-  }
-  set rotateOrder( order: string ) {
-    this.target.coreObject.rotation.order = order;
-  }
-
   get rotate() {
     return toArr( this.target.coreObject.rotation );
   }

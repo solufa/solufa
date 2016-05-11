@@ -49435,9 +49435,14 @@ var BaseNode = function (_EventNode_1$default) {
     }
 
     _createClass(BaseNode, [{
-        key: "attrHook",
-        value: function attrHook(name, value) {
+        key: "setAttrHook",
+        value: function setAttrHook(name, value) {
             return;
+        }
+    }, {
+        key: "getAttrHook",
+        value: function getAttrHook(name) {
+            return this.attrList[name] ? this.attrList[name].value : null;
         }
     }, {
         key: "removeHook",
@@ -49468,12 +49473,12 @@ var BaseNode = function (_EventNode_1$default) {
                     this.className = value;
                     break;
             }
-            this.attrHook(name, value);
+            this.setAttrHook(name, value);
         }
     }, {
         key: "getAttribute",
         value: function getAttribute(name) {
-            return this.attrList[name] ? this.attrList[name].value : null;
+            return this.getAttrHook(name);
         }
     }, {
         key: "appendChild",
@@ -49909,16 +49914,32 @@ var GomlNode = function (_BaseNode_1$default) {
     }
 
     _createClass(GomlNode, [{
-        key: "attrHook",
-        value: function attrHook(name, value) {
+        key: "setAttrHook",
+        value: function setAttrHook(name, value) {
             switch (name) {
                 case "display":
                     this.coreObject.visible = value !== false;
+                    break;
+                case "rotateOrder":
+                    this.coreObject.rotation.order = value;
                     break;
                 case "castShadow":
                 case "receiveShadow":
                     this.coreObject[name] = !!value;
                     break;
+            }
+        }
+    }, {
+        key: "getAttrHook",
+        value: function getAttrHook(name) {
+            switch (name) {
+                case "display":
+                    return this.coreObject.visible;
+                case "rotateOrder":
+                    return this.coreObject.rotation.order;
+                case "castShadow":
+                case "receiveShadow":
+                    return this.coreObject[name];
             }
         }
     }, {
@@ -50030,8 +50051,8 @@ var RdrNode = function (_BaseNode_1$default2) {
             }
         }
     }, {
-        key: "attrHook",
-        value: function attrHook(name, value) {
+        key: "setAttrHook",
+        value: function setAttrHook(name, value) {
             switch (name) {
                 case "init":
                     if (this.coreObject) {
@@ -50198,8 +50219,8 @@ var VpNode = function (_BaseNode_1$default3) {
             this.setAspect();
         }
     }, {
-        key: "attrHook",
-        value: function attrHook(name, value) {
+        key: "setAttrHook",
+        value: function setAttrHook(name, value) {
             switch (name) {
                 case "cam":
                     var cam = this.ownerDocument.body.querySelector(value);
@@ -50271,12 +50292,19 @@ exports.default = {
         }
 
         _createClass(cam, [{
-            key: "attrHook",
-            value: function attrHook(name, value) {
-                _get(Object.getPrototypeOf(cam.prototype), "attrHook", this).call(this, name, value);
+            key: "setAttrHook",
+            value: function setAttrHook(name, value) {
+                _get(Object.getPrototypeOf(cam.prototype), "setAttrHook", this).call(this, name, value);
                 if (/^(fov|near|far)$/.test(name)) {
                     this.coreObject[name] = value;
                     this.coreObject.updateProjectionMatrix();
+                }
+            }
+        }, {
+            key: "getAttrHook",
+            value: function getAttrHook(name) {
+                if (/^(fov|near|far)$/.test(name)) {
+                    return this.coreObject[name];
                 }
             }
         }]);
@@ -50306,9 +50334,9 @@ exports.default = {
         }
 
         _createClass(light, [{
-            key: "attrHook",
-            value: function attrHook(name, value) {
-                _get(Object.getPrototypeOf(light.prototype), "attrHook", this).call(this, name, value);
+            key: "setAttrHook",
+            value: function setAttrHook(name, value) {
+                _get(Object.getPrototypeOf(light.prototype), "setAttrHook", this).call(this, name, value);
                 switch (name) {
                     case "type":
                         this.coreObject = new THREE[lightType[value]]();
@@ -50356,11 +50384,11 @@ exports.default = {
         }
 
         _createClass(mesh, [{
-            key: "attrHook",
-            value: function attrHook(name, value) {
+            key: "setAttrHook",
+            value: function setAttrHook(name, value) {
                 var _this9 = this;
 
-                _get(Object.getPrototypeOf(mesh.prototype), "attrHook", this).call(this, name, value);
+                _get(Object.getPrototypeOf(mesh.prototype), "setAttrHook", this).call(this, name, value);
                 var index = void 0;
                 switch (name) {
                     case "geo":
@@ -50479,9 +50507,9 @@ exports.default = {
         }
 
         _createClass(sprite, [{
-            key: "attrHook",
-            value: function attrHook(name, value) {
-                _get(Object.getPrototypeOf(sprite.prototype), "attrHook", this).call(this, name, value);
+            key: "setAttrHook",
+            value: function setAttrHook(name, value) {
+                _get(Object.getPrototypeOf(sprite.prototype), "setAttrHook", this).call(this, name, value);
                 switch (name) {
                     case "mtl":
                         if (value.cacheId !== undefined) {
@@ -50680,14 +50708,6 @@ var Style = function () {
         },
         set: function set(z) {
             this.target.coreObject.up.z = z;
-        }
-    }, {
-        key: "rotateOrder",
-        get: function get() {
-            return this.target.coreObject.rotation.order;
-        },
-        set: function set(order) {
-            this.target.coreObject.rotation.order = order;
         }
     }, {
         key: "rotate",

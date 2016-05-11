@@ -50,7 +50,8 @@ class BaseNode extends EventNode {
     });
   }
 
-  public attrHook( name, value ) { return; }
+  public setAttrHook( name, value ) { return; }
+  public getAttrHook( name ) { return this.attrList[ name ] ? this.attrList[ name ].value : null; }
   public removeHook( childNode ) { return; }
   public appendHook( childNode ) { return; }
 
@@ -73,11 +74,11 @@ class BaseNode extends EventNode {
       break;
     }
 
-    this.attrHook( name, value );
+    this.setAttrHook( name, value );
   }
 
   public getAttribute( name: string ) {
-    return this.attrList[ name ] ? this.attrList[ name ].value : null;
+    return this.getAttrHook( name );
   }
 
   public appendChild( child ): void {
