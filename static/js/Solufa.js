@@ -49885,9 +49885,9 @@ exports.default = GomlDoc;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -49941,6 +49941,8 @@ var GomlNode = function (_BaseNode_1$default) {
                 case "castShadow":
                 case "receiveShadow":
                     return this.coreObject[name];
+                default:
+                    return _get(Object.getPrototypeOf(GomlNode.prototype), "getAttrHook", this).call(this, name);
             }
         }
     }, {
@@ -51011,7 +51013,9 @@ exports.default = function (value) {
     if (value.type === "Buffer") {
         var geometry = new THREE.BufferGeometry();
         for (var key in value.attrs) {
-            geometry.addAttribute(key, new THREE.BufferAttribute(new Float32Array(value.attrs[key]), key === "uv" ? 2 : 3));
+            if (key) {
+                geometry.addAttribute(key, new THREE.BufferAttribute(new Float32Array(value.attrs[key]), key === "uv" ? 2 : 3));
+            }
         }
         return geometry;
     } else {
@@ -51031,7 +51035,7 @@ exports.default = function (value) {
         if (_typeof(value.value[key]) === "object") {
             var tmp = value.value[key];
             switch (tmp.type) {
-                case "Image":
+                case "image":
                     var txr = new THREE.Texture(new Image());
                     txr.image.addEventListener("load", function () {
                         this.needsUpdate = true;
@@ -51043,6 +51047,11 @@ exports.default = function (value) {
                     }
                     txr.image.src = tmp.src;
                     value.value[key] = txr;
+                    break;
+                case "canvas":
+                    var canvasTxr = new THREE.Texture(tmp.canvas);
+                    value.value[key] = canvasTxr;
+                    canvasTxr.needsUpdate = true;
                     break;
             }
         }

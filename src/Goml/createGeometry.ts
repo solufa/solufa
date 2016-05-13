@@ -5,7 +5,9 @@ export default ( value ) => {
     if ( value.type === "Buffer" ) {
       const geometry = new THREE.BufferGeometry;
       for ( let key in value.attrs ) {
-        geometry.addAttribute( key, new THREE.BufferAttribute( new Float32Array( value.attrs[ key ] ), key === "uv" ? 2 : 3 ) );
+        if ( key ) { // if使わないとlintに怒られる
+          geometry.addAttribute( key, new THREE.BufferAttribute( new Float32Array( value.attrs[ key ] ), key === "uv" ? 2 : 3 ) );
+        }
       }
 
 

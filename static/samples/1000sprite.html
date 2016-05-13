@@ -4,6 +4,7 @@ document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livere
 </script>
 <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>-->
 <script src="../js/MSXTransformer.js"></script>
+<script src="../components/Solufa-OrbitVp.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/msx;harmony=true">
 S( function() {
@@ -25,14 +26,13 @@ S( function() {
 				type: "Sprite",
 				value: {
 					map: {
-						type: "Image",
+						type: "image",
 						src: "../img/arrow.png"
 					}
 				}
 			},
 			meshPoses: [],
 			lightPos: { pos: [ 1, 10, 10 ] },
-			objPos: { posZ: -155 },
 			spStyle: {
 				posY: 3,
 				scale: 10
@@ -65,13 +65,14 @@ S( function() {
       var vm = App.vm;
 
       return <scene>
-				<obj config={vm.rotate} style={ vm.objPos }>
+				<obj config={vm.rotate}>
         	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}>
 						<sprite mtl={ vm.spMtl } style={vm.spStyle}/>
 					</mesh>)}
 				</obj>
-				<cam id="cam"/>
+				<cam id="cam" style={{ posZ: 155 }}/>
         <light type="Dir" style={ vm.lightPos }/>
+				<light type="Amb"/>
       </scene>;
     }
   };
@@ -79,7 +80,7 @@ S( function() {
 
   m.mount( S.document.body, App );
   m.render( S.document.head, <rdr init={{ frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}>
-		<vp cam="#cam"/>
+		<OrbitVp cam="#cam"/>
 	</rdr> );
 });
 </script>

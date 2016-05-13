@@ -45,6 +45,8 @@ class GomlNode extends BaseNode {
     case "castShadow":
     case "receiveShadow":
       return this.coreObject[ name ];
+    default:
+      return super.getAttrHook( name );
     }
   }
 

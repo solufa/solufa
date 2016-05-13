@@ -6,7 +6,7 @@ export default ( value ) => {
     if ( typeof value.value[ key ] === "object" ) {
       let tmp = value.value[ key ];
       switch ( tmp.type ) {
-      case "Image":
+      case "image":
         let txr = new THREE.Texture( new Image );
         txr.image.addEventListener( "load", function() {
           this.needsUpdate = true;
@@ -20,6 +20,12 @@ export default ( value ) => {
         }
         txr.image.src = tmp.src;
         value.value[ key ] = txr;
+        break;
+
+      case "canvas":
+        let canvasTxr = new THREE.Texture( tmp.canvas );
+        value.value[ key ] = canvasTxr;
+        canvasTxr.needsUpdate = true;
         break;
       }
     }

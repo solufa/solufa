@@ -67,7 +67,7 @@ S( function() {
       var vm = App.vm;
 
       return <scene>
-				<obj config={vm.rotate} style={ vm.objPos }>
+				<obj config={vm.rotate}>
 					{ vm.objsPos.map( pos => <obj style={ pos }>
 						{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
 					</obj>

@@ -4,6 +4,7 @@ document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livere
 </script>
 <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>-->
 <script src="../js/MSXTransformer.js"></script>
+<script src="../components/Solufa-OrbitVp.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/msx;harmony=true">
 S( function() {
@@ -23,7 +24,6 @@ S( function() {
       },
 			meshPoses: [],
 			lightPos: { pos: [ 1, 10, 10 ] },
-			objPos: { posZ: -155 },
 			init: function() {
 	      for ( var i = 0; i < 10; i++ ) {
 					for ( var j = 0; j < 10; j++ ) {
@@ -35,7 +35,7 @@ S( function() {
 			},
 			rotate: function( elem, isInit ) {
 				if ( isInit ) return;
-				
+
 				S.update( function( delta, elapsed ) {
 					elem.style.rotateY += delta * .0002;
 					elem.style.rotateX += delta * .0002;
@@ -45,9 +45,6 @@ S( function() {
 					elem.childNodes[ 0 ].style.colorG = Math.abs( Math.cos( elapsed * .0005 ) );
 					elem.childNodes[ 0 ].style.colorB = 1 - Math.abs( Math.sin( elapsed * .0005 ) );
 				});
-			},
-			click: function(e) {
-				console.log(e)
 			}
 		},
     controller: function() {
@@ -57,11 +54,12 @@ S( function() {
       var vm = App.vm;
 
       return <scene>
-				<obj config={vm.rotate} style={ vm.objPos }>
-        	{ vm.meshPoses.map( v => <mesh onclick={vm.click} geo={vm.geo} mtl={vm.mtl} style={v}/>)}
+				<obj config={vm.rotate}>
+        	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
 				</obj>
-				<cam id="cam"/>
+				<cam id="cam" style={{ posZ: 155 }}/>
         <light type="Dir" style={ vm.lightPos }/>
+				<light type="Amb"/>
       </scene>;
     }
   };
@@ -69,7 +67,7 @@ S( function() {
 
   m.mount( S.document.body, App );
   m.render( S.document.head, <rdr init={{ frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}>
-		<vp cam="#cam"/>
+		<OrbitVp cam="#cam"/>
 	</rdr> );
 });
 </script>

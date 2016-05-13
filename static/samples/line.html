@@ -27,12 +27,10 @@ S( function() {
 			pMtl: {
 				type: "Points",
 				value: {
-					size: 1,
+					size: .5,
 					color: "#f55"
 				}
 			},
-			lightPos: { pos: [ 1, 10, 10 ] },
-			points: [],
 			init: function() {
 				var pos = this.geo.attrs.position;
 
@@ -61,7 +59,6 @@ S( function() {
 					<points geo={vm.geo} mtl={vm.pMtl}/>
 				</obj>
 				<cam id="cam" style={{ posZ: 150 }}/>
-        <light type="Dir" style={ vm.lightPos }/>
       </scene>;
     }
   };
