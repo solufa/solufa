@@ -21,6 +21,8 @@ THREE.OrbitControls = function ( object, domElement, lookAt ) {
 
 	this.object = object;
 
+	this.reverse = false;
+
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
 	// Set to false to disable this control
@@ -283,13 +285,13 @@ THREE.OrbitControls = function ( object, domElement, lookAt ) {
 
 	function rotateLeft( angle ) {
 
-		sphericalDelta.theta -= angle;
+		sphericalDelta.theta -= scope.reverse ? -angle : angle;
 
 	}
 
 	function rotateUp( angle ) {
 
-		sphericalDelta.phi -= angle;
+		sphericalDelta.phi -= scope.reverse ? -angle : angle;
 
 	}
 
@@ -1041,15 +1043,32 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 } );
 
 function set( elem ) {
-	var cam = elem.ownerDocument.body.querySelector( elem.getAttribute( "cam" ) );
-	var orbit = new THREE.OrbitControls( cam.coreObject, elem.parentNode.canvas, cam.style.lookAt );
+  var ctrl = elem.getAttribute( "ctrl" );
+  if ( !ctrl.orbit ) {
+		var cam = elem.ownerDocument.body.querySelector( elem.getAttribute( "cam" ) );
+		ctrl.orbit = new THREE.OrbitControls( cam.coreObject, elem.parentNode.canvas, cam.style.lookAt );
+	}
+
+	for ( var key in ctrl ) {
+		if ( key !== "orbit" ) {
+			ctrl.orbit[ key ] = ctrl[ key ];
+		}
+	}
 }
 
 var Orbit = {
   controller: function( attrs ) {
+    return {
+      orbit: null
+    };
   },
   view: function( ctrl, attrs ) {
-    return {tag: "vp", attrs: {cam:attrs.cam, config:set, width:attrs.width || 1, height:attrs.height || 1, bottom:attrs.bottom || 0, left:attrs.left || 0}};
+		for ( var key in attrs ) {
+			if ( key !== "cam" ) {
+				ctrl[ key ] = attrs[ key ];
+			}
+		}
+    return {tag: "vp", attrs: {cam:attrs.cam, ctrl:ctrl, config:set, width:attrs.width || 1, height:attrs.height || 1, bottom:attrs.bottom || 0, left:attrs.left || 0}};
   }
 };
 
