@@ -149,9 +149,10 @@ class RdrNode extends BaseNode {
   }
 
   public render(): void {
-    this.coreObject.clear();
-
-    this.traverseVp( this.renderEachVp );
+    if ( this.getAttribute( "enabled" ) !== false ) {
+      this.coreObject.clear();
+      this.traverseVp( this.renderEachVp );
+    }
 
     this.newHandlerTypes.forEach( this.addCanvasEvent );
 
@@ -316,7 +317,7 @@ class VpNode extends BaseNode {
   }
 
   public render( renderer ) {
-    if ( this.cameraObject ) {
+    if ( this.cameraObject && this.getAttribute( "enabled" ) !== false ) {
       renderer.setViewport(
         +this.getAttribute( "left" ) * this.width,
         +this.getAttribute( "bottom" ) * this.height,

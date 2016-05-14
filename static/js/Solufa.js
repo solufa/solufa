@@ -50088,8 +50088,10 @@ var RdrNode = function (_BaseNode_1$default2) {
     }, {
         key: "render",
         value: function render() {
-            this.coreObject.clear();
-            this.traverseVp(this.renderEachVp);
+            if (this.getAttribute("enabled") !== false) {
+                this.coreObject.clear();
+                this.traverseVp(this.renderEachVp);
+            }
             this.newHandlerTypes.forEach(this.addCanvasEvent);
             this.handlerTypes.forEach(this.removeCanvasEvent);
             this.handlerTypes = this.newHandlerTypes;
@@ -50220,7 +50222,7 @@ var VpNode = function (_BaseNode_1$default3) {
     }, {
         key: "render",
         value: function render(renderer) {
-            if (this.cameraObject) {
+            if (this.cameraObject && this.getAttribute("enabled") !== false) {
                 renderer.setViewport(+this.getAttribute("left") * this.width, +this.getAttribute("bottom") * this.height, +this.getAttribute("width") * this.width, +this.getAttribute("height") * this.height);
                 renderer.render(this.scene.coreObject, this.cameraObject);
                 return this.scene._allHandlerTypeList;

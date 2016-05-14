@@ -1,4 +1,5 @@
 <script src="../js/Solufa.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
 <script>
 document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livereload.js?ext=Chrome&amp;extver=2.1.0"></scr' + 'ipt>' );
 </script>
@@ -8,6 +9,18 @@ document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livere
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/msx;harmony=true">
 S( function() {
+
+	var stats = new Stats();
+	stats.setMode(1);
+  stats.domElement.style.position = "fixed";
+  stats.domElement.style.left    = "5px";
+  stats.domElement.style.top      = "5px";
+  document.body.appendChild(stats.domElement);
+
+  requestAnimationFrame( function update() {
+    requestAnimationFrame( update );
+    stats.update();
+  });
 
   var App = {
 		vm: {
