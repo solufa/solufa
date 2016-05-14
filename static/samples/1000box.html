@@ -80,7 +80,7 @@ S( function() {
 
   m.mount( S.document.body, App );
   m.render( S.document.head, <rdr init={{ frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}>
-		<OrbitVp cam="#cam"/>
+		<vp cam="#cam" height={.5} width={.5} top={.3} right={0}/>
 	</rdr> );
 });
 </script>

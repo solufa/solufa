@@ -356,8 +356,24 @@ class VpNode extends BaseNode {
 
       break;
     case "width":
-    case "height":
+      let right = this.getAttribute( "right" );
+      if ( typeof right === "number" ) {
+        this.setAttribute( "left", 1 - value - right );
+      }
       this.setAspect();
+      break;
+    case "height":
+      let top = this.getAttribute( "top" );
+      if ( typeof top === "number" ) {
+        this.setAttribute( "bottom", 1 - value - top );
+      }
+      this.setAspect();
+      break;
+    case "top":
+      this.setAttribute( "bottom", 1 - value - this.getAttribute( "height" ) );
+      break;
+    case "right":
+      this.setAttribute( "left", 1 - value - this.getAttribute( "width" ) );
       break;
     }
   }
