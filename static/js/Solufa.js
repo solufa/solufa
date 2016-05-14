@@ -51160,13 +51160,16 @@ var SolufaInit = function SolufaInit(version) {
     Solufa.update = update_1.updateS;
     Solufa.document = doc;
     Solufa.version = version;
+    Solufa._S = window.S;
+    Solufa.noConflict = function () {
+        window.S = Solufa._S;
+    };
     m.deps({
         cancelAnimationFrame: window.cancelAnimationFrame,
         document: doc,
         location: window.location,
         requestAnimationFrame: window.requestAnimationFrame
     });
-    window.m = m;
     window.Solufa = window.S = Solufa;
     console.log("%cSolufa " + version, "font-size: 250%; text-shadow: 1px 1px 2px rgba(0,0,0,.8); color: #fff; font-weight: bold; font-family: Georgia; font-style: italic;");
 };

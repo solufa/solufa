@@ -42,6 +42,10 @@ const SolufaInit = ( version: string ) => {
   (<any>Solufa).update = update;
   (<any>Solufa).document = doc;
   (<any>Solufa).version = version;
+  (<any>Solufa)._S = (<any>window).S;
+  (<any>Solufa).noConflict = function() {
+     (<any>window).S = (<any>Solufa)._S;
+  };
 
   m.deps({
     cancelAnimationFrame: window.cancelAnimationFrame,
@@ -50,8 +54,7 @@ const SolufaInit = ( version: string ) => {
     requestAnimationFrame: window.requestAnimationFrame,
   });
 
-  (<any>window).m = m;
-  (<any>window).Solufa  = (<any>window).S  = Solufa;
+  (<any>window).Solufa = (<any>window).S = Solufa;
 
   console.log( "%cSolufa " + version,
     "font-size: 250%; text-shadow: 1px 1px 2px rgba(0,0,0,.8); color: #fff; font-weight: bold; font-family: Georgia; font-style: italic;" );
