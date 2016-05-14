@@ -51026,34 +51026,55 @@ exports.default = function (value) {
 },{"three":293}],303:[function(require,module,exports){
 "use strict";
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var THREE = require("three");
+var txrPool = [];
+var txrCorePool = [];
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = function (value) {
     for (var key in value.value) {
-        if (_typeof(value.value[key]) === "object") {
+        if (/(map|Map)$/.test(key)) {
             var tmp = value.value[key];
-            switch (tmp.type) {
-                case "image":
-                    var txr = new THREE.Texture(new Image());
-                    txr.image.addEventListener("load", function () {
-                        this.needsUpdate = true;
-                    }.bind(txr), false);
-                    txr.sourceFile = tmp.src;
-                    delete txr.image.crossOrigin;
-                    if (!/^data:image/.test(tmp.src)) {
-                        txr.image.crossOrigin = "anonymous";
+            var txr = void 0;
+            var index = txrPool.indexOf(tmp);
+            if (index !== -1) {
+                txr = txrCorePool[index];
+            } else {
+                switch (tmp.type) {
+                    case "image":
+                        txr = new THREE.Texture(new Image());
+                        txr.image.addEventListener("load", function () {
+                            this.needsUpdate = true;
+                        }.bind(txr), false);
+                        txr.sourceFile = tmp.src;
+                        delete txr.image.crossOrigin;
+                        if (!/^data:image/.test(tmp.src)) {
+                            txr.image.crossOrigin = "anonymous";
+                        }
+                        txr.image.src = tmp.src;
+                        break;
+                    case "canvas":
+                        txr = new THREE.Texture(tmp.canvas);
+                        txr.needsUpdate = true;
+                        break;
+                    case "video":
+                        txr = new THREE.VideoTexture(tmp.video);
+                        txr.minFilter = THREE.LinearFilter;
+                        txr.magFilter = THREE.LinearFilter;
+                        txr.format = THREE.RGBFormat;
+                        break;
+                }
+                Object.defineProperty(tmp, "needsUpdate", {
+                    get: function get() {
+                        return txrCorePool[txrPool.indexOf(this)].needsUpdate;
+                    },
+                    set: function set(bool) {
+                        txrCorePool[txrPool.indexOf(this)].needsUpdate = bool;
                     }
-                    txr.image.src = tmp.src;
-                    value.value[key] = txr;
-                    break;
-                case "canvas":
-                    var canvasTxr = new THREE.Texture(tmp.canvas);
-                    value.value[key] = canvasTxr;
-                    canvasTxr.needsUpdate = true;
-                    break;
+                });
+                txrPool.push(tmp);
+                txrCorePool.push(txr);
             }
+            value.value[key] = txr;
         }
     }
     return new THREE[value.type + "Material"](value.value);
