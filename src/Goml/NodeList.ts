@@ -316,13 +316,23 @@ class VpNode extends BaseNode {
     }
   }
 
+  public getElementOffsetFromCanvas( element ) {
+    let matrix = element.coreObject.matrixWorld.elements;
+    this.tmpVec.set( matrix[ 12 ], matrix[ 13 ], matrix[ 14 ] ).project( this.cameraObject );
+    return {
+      left: this.getAttribute( "width" ) * this.width / 2 * ( 1 + this.tmpVec.x ) + this.getAttribute( "left" ) * this.width,
+      top: this.getAttribute( "height") * this.height / 2 * ( 1 - this.tmpVec.y )
+        + ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height,
+    };
+  }
+
   public render( renderer ) {
     if ( this.cameraObject && this.getAttribute( "enabled" ) !== false ) {
       renderer.setViewport(
-        +this.getAttribute( "left" ) * this.width,
-        +this.getAttribute( "bottom" ) * this.height,
-        +this.getAttribute( "width" ) * this.width,
-        +this.getAttribute( "height") * this.height
+        this.getAttribute( "left" ) * this.width,
+        this.getAttribute( "bottom" ) * this.height,
+        this.getAttribute( "width" ) * this.width,
+        this.getAttribute( "height") * this.height
       );
       renderer.render( this.scene.coreObject, this.cameraObject );
       return this.scene._allHandlerTypeList;

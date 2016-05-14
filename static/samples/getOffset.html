@@ -22,6 +22,9 @@ S( function() {
     stats.update();
   });
 
+	var obj;
+	var index = 0;
+
   var App = {
 		vm: {
 			geo: {
@@ -48,6 +51,8 @@ S( function() {
 			},
 			rotate: function( elem, isInit ) {
 				if ( isInit ) return;
+
+				obj = elem;
 
 				S.update( function( delta, elapsed ) {
 					elem.style.rotateY += delta * .0002;
@@ -77,11 +82,24 @@ S( function() {
     }
   };
 
+	function getOffset( elem ) {
+		var point = document.getElementById("point");
+		S.update( function() {
+			var offset = elem.childNodes[ 0 ].getElementOffsetFromCanvas(obj.childNodes[ index ]);
+			point.style.top = offset.top + "px";
+			point.style.left = offset.left + "px";
+		});
+	}
 
   m.mount( S.document.body, App );
-  m.render( S.document.head, <rdr init={{ frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}>
+  m.render( S.document.head, <rdr config={getOffset} init={{ frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}>
 		<OrbitVp cam="#cam"/>
 	</rdr> );
+
+	document.getElementById("index").onclick = function() {
+		index = +this.value;
+	};
+
 });
 </script>
 
@@ -93,5 +111,19 @@ S( function() {
   width: 100%;
   height: 100%;
 }
+#point {
+	position: fixed;
+	width: 10px;
+	height: 10px;
+	background-color: #fff;
+	border-radius: 50%;
+}
+#index {
+	position: fixed;
+	top: 10px;
+	right: 10px;
+}
 </style>
 <div id="solufa"></div>
+<div id="point"></div>
+<input id="index" type="number" min="0" max="999" value="0"/>
