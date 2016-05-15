@@ -36,7 +36,7 @@ S( function( m ) {
         }
       },
 			meshPoses: [],
-			lightPos: { pos: [ 1, 10, 10 ] },
+			lightStyle: { pos: [ 1, 10, 10 ], lightColor: "#00f" },
 			init: function() {
 	      for ( var i = 0; i < 10; i++ ) {
 					for ( var j = 0; j < 10; j++ ) {
@@ -71,8 +71,8 @@ S( function( m ) {
         	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
 				</obj>
 				<cam id="cam" style={{ posZ: 155 }}/>
-        <light type="Dir" style={ vm.lightPos }/>
-				<light type="Amb"/>
+        <light init={{ type: "Dir" }} style={ vm.lightStyle }/>
+				<light init={{ type: "Amb" }}/>
       </scene>;
     }
   };

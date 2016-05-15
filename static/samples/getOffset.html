@@ -76,8 +76,8 @@ S( function( m ) {
         	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
 				</obj>
 				<cam id="cam" style={{ posZ: 155 }}/>
-        <light type="Dir" style={ vm.lightPos }/>
-				<light type="Amb"/>
+        <light init={{ type: "Dir" }} style={ vm.lightPos }/>
+				<light init={{ type: "Amb" }}/>
       </scene>;
     }
   };

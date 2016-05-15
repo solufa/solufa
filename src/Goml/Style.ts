@@ -241,6 +241,31 @@ class Style {
     this.target.coreObject.material.color.b = value;
   }
 
+  get lightColor() {
+    return cToObj( this.target.coreObject.color );
+  }
+  set lightColor( value ) {
+    this.target.coreObject.color.set( value );
+  }
+  get lightColorR(): number {
+    return this.target.coreObject.color.r;
+  }
+  set lightColorR( value ) {
+    this.target.coreObject.color.r = value;
+  }
+  get lightColorG(): number {
+    return this.target.coreObject.color.g;
+  }
+  set lightColorG( value ) {
+    this.target.coreObject.color.g = value;
+  }
+  get lightColorB(): number {
+    return this.target.coreObject.color.b;
+  }
+  set lightColorB( value ) {
+    this.target.coreObject.color.b = value;
+  }
+
   constructor( target ) {
     this.target = target;
     this._lookAt = new THREE.Vector3;

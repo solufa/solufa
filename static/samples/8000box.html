@@ -87,8 +87,8 @@ S( function( m ) {
 					)}
 				</obj>
 				<cam id="cam" style={vm.camPos}/>
-        <light type="Dir" style={ vm.lightPos }/>
-				<light type="Amb"/>
+        <light init={{ type: "Dir" }} style={ vm.lightPos }/>
+				<light init={{ type: "Amb" }}/>
       </scene>;
     }
   };

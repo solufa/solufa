@@ -71,8 +71,8 @@ S( function( m ) {
 					</mesh>)}
 				</obj>
 				<cam id="cam" style={{ posZ: 155 }}/>
-        <light type="Dir" style={ vm.lightPos }/>
-				<light type="Amb"/>
+        <light init={{ type: "Dir" }} style={ vm.lightPos }/>
+				<light init={{ type: "Amb" }}/>
       </scene>;
     }
   };

@@ -115,19 +115,20 @@ class RdrNode extends BaseNode {
     switch ( name ) {
     case "init":
       if ( this.coreObject ) {
-        this.coreObject.resetGLState();
+        break;
+        /*this.coreObject.resetGLState();
         this.coreObject.dispose();
         this.canvas = null;
         this.coreObject = null;
 
         update( this.updateFn, false );
-        this.updateFn = null;
+        this.updateFn = null;*/
       }
 
       const frame = document.querySelector( value.frame );
       if ( !frame ) {
         errorMessage( 'HTML element can not be found by the selector of "' + value.frame + '".' );
-        return;
+        break;
       }
 
       const canvasData = createCanvas();
@@ -460,8 +461,10 @@ export default {
       super.setAttrHook( name, value );
 
       switch ( name ) {
-      case "type":
-        this.coreObject = new THREE[ lightType[ value ] ];
+      case "init":
+        if ( this.coreObject ) { break; }
+        let param = value.value || [];
+        this.coreObject = new THREE[ lightType[ value.type ] ]( param[ 0 ], param[ 1 ], param[ 2 ], param[ 3 ], param[ 4 ], param[ 5 ] );
         break;
       case "helper":
         if ( !this.coreObject ) { break; }

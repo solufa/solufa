@@ -50061,17 +50061,12 @@ var RdrNode = function (_BaseNode_1$default2) {
             switch (name) {
                 case "init":
                     if (this.coreObject) {
-                        this.coreObject.resetGLState();
-                        this.coreObject.dispose();
-                        this.canvas = null;
-                        this.coreObject = null;
-                        update_1.updateS(this.updateFn, false);
-                        this.updateFn = null;
+                        break;
                     }
                     var frame = document.querySelector(value.frame);
                     if (!frame) {
                         errorMessage_1.default('HTML element can not be found by the selector of "' + value.frame + '".');
-                        return;
+                        break;
                     }
                     var canvasData = createCanvas_1.default();
                     frame.appendChild(canvasData.container);
@@ -50393,8 +50388,12 @@ exports.default = {
             value: function setAttrHook(name, value) {
                 _get(Object.getPrototypeOf(light.prototype), "setAttrHook", this).call(this, name, value);
                 switch (name) {
-                    case "type":
-                        this.coreObject = new THREE[lightType[value]]();
+                    case "init":
+                        if (this.coreObject) {
+                            break;
+                        }
+                        var param = value.value || [];
+                        this.coreObject = new THREE[lightType[value.type]](param[0], param[1], param[2], param[3], param[4], param[5]);
                         break;
                     case "helper":
                         if (!this.coreObject) {
@@ -50984,6 +50983,38 @@ var Style = function () {
         },
         set: function set(value) {
             this.target.coreObject.material.color.b = value;
+        }
+    }, {
+        key: "lightColor",
+        get: function get() {
+            return cToObj(this.target.coreObject.color);
+        },
+        set: function set(value) {
+            this.target.coreObject.color.set(value);
+        }
+    }, {
+        key: "lightColorR",
+        get: function get() {
+            return this.target.coreObject.color.r;
+        },
+        set: function set(value) {
+            this.target.coreObject.color.r = value;
+        }
+    }, {
+        key: "lightColorG",
+        get: function get() {
+            return this.target.coreObject.color.g;
+        },
+        set: function set(value) {
+            this.target.coreObject.color.g = value;
+        }
+    }, {
+        key: "lightColorB",
+        get: function get() {
+            return this.target.coreObject.color.b;
+        },
+        set: function set(value) {
+            this.target.coreObject.color.b = value;
         }
     }]);
 
