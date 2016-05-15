@@ -50082,9 +50082,17 @@ var RdrNode = function (_BaseNode_1$default2) {
                     this.updateFn = this.render.bind(this);
                     update_1.updateS(this.updateFn);
                     this.coreObject.setSize(frame.clientWidth, frame.clientHeight);
+                    this.coreObject.setClearColor(0, 1);
+                    break;
+                case "clearColor":
+                    this.coreObject.setClearColor(value, this.coreObject.getClearAlpha());
+                    break;
+                case "clearAlpha":
+                    this.coreObject.setClearColor(this.coreObject.getClearColor().getHex(), value);
                     break;
                 case "enableShadow":
                     this.coreObject.shadowMap.enabled = value;
+                    break;
             }
         }
     }, {

@@ -142,9 +142,17 @@ class RdrNode extends BaseNode {
       update( this.updateFn );
 
       this.coreObject.setSize( frame.clientWidth, frame.clientHeight );
+      this.coreObject.setClearColor( 0, 1 );
+      break;
+    case "clearColor":
+      this.coreObject.setClearColor( value, this.coreObject.getClearAlpha() );
+      break;
+    case "clearAlpha":
+      this.coreObject.setClearColor( this.coreObject.getClearColor().getHex(), value );
       break;
     case "enableShadow":
       this.coreObject.shadowMap.enabled = value;
+      break;
     }
   }
 
