@@ -49846,18 +49846,20 @@ var GomlDoc = function (_EventNode_1$default) {
 
         var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(GomlDoc).call(this));
 
-        _this2.createEvent = function (type) {
-            return new NewEvent(type);
-        };
         _this2.body = createNode_1.default("body", _this2);
         _this2.body.parentNode = _this2;
         _this2.head = createNode_1.default("head", _this2);
         _this2.head.parentNode = _this2;
-        _this2.childNodes = [_this2.body, _this2.head];
+        _this2.childNodes = [_this2.head, _this2.body];
         return _this2;
     }
 
     _createClass(GomlDoc, [{
+        key: "createEvent",
+        value: function createEvent(type) {
+            return new NewEvent(type);
+        }
+    }, {
         key: "createElement",
         value: function createElement(tagName) {
             return createNode_1.default(tagName, this);

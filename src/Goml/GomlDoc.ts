@@ -72,7 +72,7 @@ class GomlDoc extends EventNode {
   public body;
   public head;
   public childNodes;
-  public createEvent = ( type: string ) => {
+  public createEvent( type: string ) {
     return new NewEvent( type );
   };
 
@@ -95,7 +95,7 @@ class GomlDoc extends EventNode {
     this.head = createNode( "head", this );
     this.head.parentNode = this;
 
-    this.childNodes = [ this.body, this.head ];
+    this.childNodes = [ this.head, this.body ];
   }
 }
 
