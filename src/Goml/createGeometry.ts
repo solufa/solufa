@@ -19,6 +19,8 @@ export default ( value ) => {
         value.value[ 2 ],
         value.value[ 3 ],
         value.value[ 4 ],
-        value.value[ 5 ] );
+        value.value[ 5 ],
+        value.value[ 6 ],
+        value.value[ 7 ] );
     }
 };

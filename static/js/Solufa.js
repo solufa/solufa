@@ -51088,7 +51088,7 @@ exports.default = function (value) {
         }
         return geometry;
     } else {
-        return new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5]);
+        return new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5], value.value[6], value.value[7]);
     }
 };
 
