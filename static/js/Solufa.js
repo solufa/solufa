@@ -51110,23 +51110,29 @@ exports.default = function (value) {
             } else {
                 switch (tmp.type) {
                     case "image":
-                        txr = new THREE.Texture(new Image());
-                        txr.image.addEventListener("load", function () {
-                            this.needsUpdate = true;
-                        }.bind(txr), false);
-                        txr.sourceFile = tmp.src;
-                        delete txr.image.crossOrigin;
-                        if (!/^data:image/.test(tmp.src)) {
-                            txr.image.crossOrigin = "anonymous";
+                        if (typeof tmp.src === "string") {
+                            txr = new THREE.Texture(new Image());
+                            txr.image.addEventListener("load", function () {
+                                this.needsUpdate = true;
+                            }.bind(txr), false);
+                            delete txr.image.crossOrigin;
+                            if (!/^data:image/.test(tmp.src)) {
+                                txr.image.crossOrigin = "anonymous";
+                            }
+                            txr.image.src = tmp.src;
+                        } else {
+                            txr = new THREE.Texture(tmp.src);
+                            txr.image.addEventListener("load", function () {
+                                this.needsUpdate = true;
+                            }.bind(txr), false);
                         }
-                        txr.image.src = tmp.src;
                         break;
                     case "canvas":
-                        txr = new THREE.Texture(tmp.canvas);
+                        txr = new THREE.Texture(tmp.src);
                         txr.needsUpdate = true;
                         break;
                     case "video":
-                        txr = new THREE.VideoTexture(tmp.video);
+                        txr = new THREE.VideoTexture(tmp.src);
                         txr.minFilter = THREE.LinearFilter;
                         txr.magFilter = THREE.LinearFilter;
                         txr.format = THREE.RGBFormat;
@@ -51137,7 +51143,28 @@ exports.default = function (value) {
                         return txrCorePool[txrPool.indexOf(this)].needsUpdate;
                     },
                     set: function set(bool) {
-                        txrCorePool[txrPool.indexOf(this)].needsUpdate = bool;
+                        var txr = txrCorePool[txrPool.indexOf(this)];
+                        if (!bool) {
+                            txr.needsUpdate = bool;
+                            return;
+                        }
+                        switch (this.type) {
+                            case "image":
+                                if (typeof this.src === "string") {
+                                    txr.image.src = this.src;
+                                } else {
+                                    txr.image = this.src;
+                                    txr.image.addEventListener("load", function () {
+                                        this.needsUpdate = true;
+                                    }.bind(txr), false);
+                                }
+                                break;
+                            case "canvas":
+                            case "video":
+                                txr.image = this.src;
+                                break;
+                        }
+                        txr.needsUpdate = bool;
                     }
                 });
                 txrPool.push(tmp);
