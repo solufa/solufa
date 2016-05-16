@@ -1,12 +1,8 @@
-<script src="../js/Solufa.js"></script>
-<script src="../js/Stats.min.js"></script>
-<script>
-document.write( '<scr' + 'ipt src="http://' + location.hostname + ':35729/livereload.js?ext=Chrome&amp;extver=2.1.0"></scr' + 'ipt>' );
-</script>
-<script src="../js/MSXTransformer.js"></script>
-<script src="../components/Solufa-OrbitVp.js"></script>
+<script src="Solufa.min.js"></script>
+<script src="../Stats.min.js"></script>
+<script src="Solufa-OrbitVp.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<script type="text/msx;harmony=true">
+<script>
 S( function( m ) {
 
 	var stats = new Stats();
@@ -34,8 +30,7 @@ S( function( m ) {
         }
       },
 			meshPoses: [],
-			lightPos: { pos: [ 1, 10, 10 ] },
-			camPos: { posZ: 355 },
+			lightStyle: { pos: [ 1, 10, 10 ], lightColor: "#f00" },
 			objsPos: [],
 			init: function() {
 	      for ( var i = 0; i < 10; i++ ) {
@@ -76,26 +71,28 @@ S( function( m ) {
     },
     view: function() {
       var vm = App.vm;
-
-      return <scene>
-				<obj config={vm.rotate}>
-					{ vm.objsPos.map( pos => <obj style={ pos }>
-						{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
-					</obj>
-					)}
-				</obj>
-				<cam id="cam" style={vm.camPos}/>
-        <light init={{ type: "Dir" }} style={ vm.lightPos }/>
-				<light init={{ type: "Amb" }}/>
-      </scene>;
+      return m( "scene", [
+				m( "obj", { config: vm.rotate }, [
+					vm.objsPos.map( function( pos ) {
+						return m( "obj", { style: pos }, [
+							vm.meshPoses.map( function( v ) {
+								return m( "mesh", { geo: vm.geo, mtl: vm.mtl, style: v } );
+							})
+						]);
+					})
+				]),
+				m( "cam#cam", { style: { posZ: 355 }} ),
+        m( "light", { init: { type: "Dir" }, style: vm.lightStyle } ),
+				m( "light", { init: { type: "Amb" }} )
+      ]);
     }
   };
 
 
   m.mount( S.document.body, App );
-  m.render( S.document.head, <rdr init={{ frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}>
-		<OrbitVp cam="#cam"/>
-	</rdr> );
+  m.render( S.document.head, m( "rdr", { init: { frame: "#solufa", antialias: true, preserveDrawingBuffer: false }}, [
+		m( OrbitVp, { cam: "#cam" })
+	]) );
 });
 </script>
 
