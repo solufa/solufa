@@ -5,6 +5,8 @@ const txrCorePool = [];
 
 export default ( value ) => {
 
+  const param = Object.assign( {}, value.value );
+
   for ( let key in value.value ) {
     if ( /(map|Map)$/.test( key ) ) {
       let tmp = value.value[ key ];
@@ -81,9 +83,9 @@ export default ( value ) => {
         txrPool.push( tmp );
         txrCorePool.push( txr );
       }
-      value.value[ key ] = txr;
+      param[ key ] = txr;
     }
   }
 
-  return new THREE[ value.type + "Material" ]( value.value );
+  return new THREE[ value.type + "Material" ]( param );
 };

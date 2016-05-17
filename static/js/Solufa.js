@@ -51100,6 +51100,7 @@ var txrPool = [];
 var txrCorePool = [];
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = function (value) {
+    var param = Object.assign({}, value.value);
     for (var key in value.value) {
         if (/(map|Map)$/.test(key)) {
             var tmp = value.value[key];
@@ -51170,10 +51171,10 @@ exports.default = function (value) {
                 txrPool.push(tmp);
                 txrCorePool.push(txr);
             }
-            value.value[key] = txr;
+            param[key] = txr;
         }
     }
-    return new THREE[value.type + "Material"](value.value);
+    return new THREE[value.type + "Material"](param);
 };
 
 },{"three":293}],304:[function(require,module,exports){
