@@ -2,6 +2,7 @@ import createNode from "./createNode";
 import EventNode from "./EventNode";
 import BaseNode from "./BaseNode";
 import { idArray as idList } from "./adminIdClass";
+import { classArray as classList } from "./adminIdClass";
 
 class NewEvent {
   public cancelBubble = false;
@@ -86,6 +87,10 @@ class GomlDoc extends EventNode {
 
   public getElementById( id: string ) {
     return idList[ id ] || null;
+  }
+
+  public getElementsByClassName( name: string ) {
+    return [].concat( classList[ name ] || [] );
   }
 
   constructor () {

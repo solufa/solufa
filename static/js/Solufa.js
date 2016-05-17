@@ -49751,6 +49751,7 @@ var createNode_1 = require("./createNode");
 var EventNode_1 = require("./EventNode");
 var BaseNode_1 = require("./BaseNode");
 var adminIdClass_1 = require("./adminIdClass");
+var adminIdClass_2 = require("./adminIdClass");
 
 var NewEvent = function () {
     function NewEvent(type) {
@@ -49873,6 +49874,11 @@ var GomlDoc = function (_EventNode_1$default) {
         key: "getElementById",
         value: function getElementById(id) {
             return adminIdClass_1.idArray[id] || null;
+        }
+    }, {
+        key: "getElementsByClassName",
+        value: function getElementsByClassName(name) {
+            return [].concat(adminIdClass_2.classArray[name] || []);
         }
     }]);
 
