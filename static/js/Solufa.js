@@ -49713,7 +49713,7 @@ var EventNode = function () {
 ;
 function setEventSetter(key) {
     var type = "_on" + key;
-    var props = {
+    Object.defineProperty(EventNode.prototype, "on" + key, {
         get: function get() {
             return this[type];
         },
@@ -49727,8 +49727,7 @@ function setEventSetter(key) {
                 this.addEventListener(key, callback, false);
             }
         }
-    };
-    Object.defineProperty(EventNode.prototype, "on" + key, props);
+    });
 }
 ["Click", "DblClick", "ContextMenu", "TouchStart", "TouchMove", "TouchEnd", "TouchCancel", "MouseUp", "MouseDown", "MouseMove", "Load", "MouseWheel", "MouseOver", "MouseOut", "MouseEnter", "MouseLeave"].forEach(function (key) {
     setEventSetter(key);

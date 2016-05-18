@@ -111,7 +111,8 @@ class EventNode {
 
 function setEventSetter( key ) {
   const type = "_on" + key;
-  const props = {
+
+  Object.defineProperty( EventNode.prototype, "on" + key, {
     get: function() {
       return this[ type ];
     },
@@ -126,9 +127,7 @@ function setEventSetter( key ) {
         this.addEventListener( key, callback, false );
       }
     },
-  };
-
-  Object.defineProperty( EventNode.prototype, "on" + key, props );
+  });
 }
 
 [
