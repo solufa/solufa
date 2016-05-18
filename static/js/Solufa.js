@@ -49711,28 +49711,29 @@ var EventNode = function () {
 }();
 
 ;
-for (var key in window) {
-    if (/^on/.test(key)) {
-        (function () {
-            var type = "_" + key;
-            Object.defineProperty(EventNode.prototype, key, {
-                get: function get() {
-                    return this[type];
-                },
-                set: function set(callback) {
-                    if (this[type]) {
-                        this.removeEventListener(type.slice(3), this[type], false);
-                        this[type] = null;
-                    }
-                    if (typeof callback === "function") {
-                        this[type] = callback;
-                        this.addEventListener(type.slice(3), callback, false);
-                    }
-                }
-            });
-        })();
-    }
+function setEventSetter(key) {
+    var type = "_on" + key;
+    var props = {
+        get: function get() {
+            return this[type];
+        },
+        set: function set(callback) {
+            if (this[type]) {
+                this.removeEventListener(key, this[type], false);
+                this[type] = null;
+            }
+            if (typeof callback === "function") {
+                this[type] = callback;
+                this.addEventListener(key, callback, false);
+            }
+        }
+    };
+    Object.defineProperty(EventNode.prototype, "on" + key, props);
 }
+["Click", "DblClick", "ContextMenu", "TouchStart", "TouchMove", "TouchEnd", "TouchCancel", "MouseUp", "MouseDown", "MouseMove", "Load", "MouseWheel", "MouseOver", "MouseOut", "MouseEnter", "MouseLeave"].forEach(function (key) {
+    setEventSetter(key);
+    setEventSetter(key.toLowerCase());
+});
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = EventNode;
 

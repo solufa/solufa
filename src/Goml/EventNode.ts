@@ -109,7 +109,52 @@ class EventNode {
 
 };
 
+function setEventSetter( key ) {
+  const type = "_on" + key;
+  const props = {
+    get: function() {
+      return this[ type ];
+    },
+    set: function( callback ) {
+      if ( this[ type ] ) {
+        this.removeEventListener( key, this[ type ], false );
+        this[ type ] = null;
+      }
 
+      if ( typeof callback === "function" ) {
+        this[ type ] = callback;
+        this.addEventListener( key, callback, false );
+      }
+    },
+  };
+
+  Object.defineProperty( EventNode.prototype, "on" + key, props );
+}
+
+[
+  "Click",
+  "DblClick",
+  "ContextMenu",
+  "TouchStart",
+  "TouchMove",
+  "TouchEnd",
+  "TouchCancel",
+  "MouseUp",
+  "MouseDown",
+  "MouseMove",
+  "Load",
+  "MouseWheel",
+  "MouseOver",
+  "MouseOut",
+  "MouseEnter",
+  "MouseLeave",
+].forEach( function( key ) {
+  setEventSetter( key );
+  setEventSetter( key.toLowerCase() );
+});
+
+/*
+// iPhoneで使えない
 for ( let key in window ) {
   if ( /^on/.test( key ) ) {
     const type = "_" + key;
@@ -130,6 +175,6 @@ for ( let key in window ) {
       },
     } );
   }
-}
+}*/
 
 export default EventNode;
