@@ -50138,6 +50138,28 @@ var RdrNode = function (_BaseNode_1$default2) {
             }
         }
     }, {
+        key: "pickObjectByPixel",
+        value: function pickObjectByPixel(x, y) {
+            var vps = this.getVpByReverse();
+            for (var i = 0, l = vps.length, vp; i < l; i++) {
+                vp = vps[i];
+                if (vp._isCollision(x, y)) {
+                    return vp.pickObjectByPixel(x, y);
+                }
+            }
+        }
+    }, {
+        key: "pickObjectByRatio",
+        value: function pickObjectByRatio(x, y) {
+            var vps = this.getVpByReverse();
+            for (var i = 0, l = vps.length, vp; i < l; i++) {
+                vp = vps[i];
+                if (vp._isCollision(x, y, true)) {
+                    return vp.pickObjectByRatio(x, y);
+                }
+            }
+        }
+    }, {
         key: "traverseVp",
         value: function traverseVp(callback) {
             this.childNodes.forEach(function (child) {

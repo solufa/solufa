@@ -197,6 +197,26 @@ class RdrNode extends BaseNode {
     }
   }
 
+  public pickObjectByPixel( x: number, y: number ) {
+    const vps = this.getVpByReverse();
+    for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
+      vp = vps[ i ];
+      if ( vp._isCollision( x, y ) ) {
+        return vp.pickObjectByPixel( x, y );
+      }
+    }
+  }
+
+  public pickObjectByRatio( x: number, y: number ) {
+    const vps = this.getVpByReverse();
+    for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
+      vp = vps[ i ];
+      if ( vp._isCollision( x, y, true ) ) {
+        return vp.pickObjectByRatio( x, y );
+      }
+    }
+  }
+
   private traverseVp( callback ) {
     this.childNodes.forEach( child => {
       if ( child.tagName === "vps" ) {
