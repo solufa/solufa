@@ -50149,23 +50149,23 @@ var RdrNode = function (_BaseNode_1$default2) {
         }
     }, {
         key: "pickPointByPixel",
-        value: function pickPointByPixel(x, y, object) {
+        value: function pickPointByPixel(x, y, element) {
             var vps = this.getVpByReverse();
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y)) {
-                    return vp.pickPointByPixel(x, y, object);
+                    return vp.pickPointByPixel(x, y, element);
                 }
             }
         }
     }, {
         key: "pickPointByRatio",
-        value: function pickPointByRatio(x, y, object) {
+        value: function pickPointByRatio(x, y, element) {
             var vps = this.getVpByReverse();
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y, true)) {
-                    return vp.pickPointByRatio(x, y, object);
+                    return vp.pickPointByRatio(x, y, element);
                 }
             }
         }
@@ -50264,18 +50264,18 @@ var VpNode = function (_BaseNode_1$default3) {
         }
     }, {
         key: "pickPointByPixel",
-        value: function pickPointByPixel(x, y, object) {
+        value: function pickPointByPixel(x, y, element) {
             var ratioX = (x - this.getAttribute("left") * this.width) / (this.getAttribute("width") * this.width);
             var ratioY = (y - (1 - this.getAttribute("bottom") - this.getAttribute("height")) * this.height) / (this.getAttribute("height") * this.height);
-            return this.pickPointByRatio(ratioX, ratioY, object);
+            return this.pickPointByRatio(ratioX, ratioY, element);
         }
     }, {
         key: "pickPointByRatio",
-        value: function pickPointByRatio(x, y, object) {
+        value: function pickPointByRatio(x, y, element) {
             var ratioX = 2 * x - 1;
             var ratioY = -2 * y + 1;
             this.raycaster.setFromCamera(this.tmpVec.set(ratioX, ratioY, 0), this.cameraObject);
-            return this.raycaster.intersectObject(object || this.scene.coreObject, true)[0];
+            return this.raycaster.intersectObject(element && element.coreObject || this.scene.coreObject, true)[0];
         }
     }, {
         key: "getElementOffsetFromCanvas",
