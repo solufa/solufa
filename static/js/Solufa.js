@@ -49752,6 +49752,7 @@ var EventNode_1 = require("./EventNode");
 var BaseNode_1 = require("./BaseNode");
 var adminIdClass_1 = require("./adminIdClass");
 var adminIdClass_2 = require("./adminIdClass");
+var adminCoreObject_1 = require("./adminCoreObject");
 
 var NewEvent = function () {
     function NewEvent(type) {
@@ -49880,6 +49881,15 @@ var GomlDoc = function (_EventNode_1$default) {
         value: function getElementsByClassName(name) {
             return [].concat(adminIdClass_2.classArray[name] || []);
         }
+    }, {
+        key: "getElementByObject",
+        value: function getElementByObject(object) {
+            var target = object;
+            while (!adminCoreObject_1.getGomlElement(target) && target.parent) {
+                target = target.parent;
+            }
+            return adminCoreObject_1.getGomlElement(target);
+        }
     }]);
 
     return GomlDoc;
@@ -49888,7 +49898,7 @@ var GomlDoc = function (_EventNode_1$default) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GomlDoc;
 
-},{"./BaseNode":294,"./EventNode":295,"./adminIdClass":300,"./createNode":304}],297:[function(require,module,exports){
+},{"./BaseNode":294,"./EventNode":295,"./adminCoreObject":299,"./adminIdClass":300,"./createNode":304}],297:[function(require,module,exports){
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -51245,7 +51255,6 @@ var m = require("mithril");
 var three = require("three");
 var GomlDoc_1 = require("./Goml/GomlDoc");
 var update_1 = require("./update");
-var adminCoreObject_1 = require("./Goml/adminCoreObject");
 var SolufaInit = function SolufaInit(version) {
     var canvas = document.createElement("canvas");
     var hasGl = window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
@@ -51277,13 +51286,6 @@ var SolufaInit = function SolufaInit(version) {
     Solufa.noConflict = function () {
         window.S = Solufa._S;
     };
-    Solufa.getElementByObject = function (object) {
-        var target = object;
-        while (!adminCoreObject_1.getGomlElement(target) && target.parent) {
-            target = target.parent;
-        }
-        return adminCoreObject_1.getGomlElement(target);
-    };
     m.deps({
         cancelAnimationFrame: window.cancelAnimationFrame,
         document: doc,
@@ -51296,7 +51298,7 @@ var SolufaInit = function SolufaInit(version) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = SolufaInit;
 
-},{"./Goml/GomlDoc":296,"./Goml/adminCoreObject":299,"./update":307,"babel-polyfill":1,"mithril":291,"three":293}],306:[function(require,module,exports){
+},{"./Goml/GomlDoc":296,"./update":307,"babel-polyfill":1,"mithril":291,"three":293}],306:[function(require,module,exports){
 "use strict";
 
 var Init_1 = require("./Init");
