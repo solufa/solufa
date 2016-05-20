@@ -197,22 +197,22 @@ class RdrNode extends BaseNode {
     }
   }
 
-  public pickObjectByPixel( x: number, y: number ) {
+  public pickPointByPixel( x: number, y: number, object ) {
     const vps = this.getVpByReverse();
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y ) ) {
-        return vp.pickObjectByPixel( x, y );
+        return vp.pickPointByPixel( x, y, object );
       }
     }
   }
 
-  public pickObjectByRatio( x: number, y: number ) {
+  public pickPointByRatio( x: number, y: number, object ) {
     const vps = this.getVpByReverse();
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y, true ) ) {
-        return vp.pickObjectByRatio( x, y );
+        return vp.pickPointByRatio( x, y, object );
       }
     }
   }
@@ -345,19 +345,19 @@ class VpNode extends BaseNode {
     }
   }
 
-  public pickObjectByPixel( x: number, y: number ) {
+  public pickPointByPixel( x: number, y: number, object ) {
     const ratioX = ( x - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width );
     const ratioY = ( y - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
       ( this.getAttribute( "height" ) * this.height );
-    return this.pickObjectByRatio( ratioX, ratioY );
+    return this.pickPointByRatio( ratioX, ratioY, object );
   }
 
-  public pickObjectByRatio( x: number, y: number ) {
+  public pickPointByRatio( x: number, y: number, object ) {
     const ratioX = 2 * x - 1;
     const ratioY = -2 * y + 1;
 
     this.raycaster.setFromCamera( this.tmpVec.set( ratioX, ratioY, 0 ), this.cameraObject );
-    return this.raycaster.intersectObject( this.scene.coreObject, true )[ 0 ];
+    return this.raycaster.intersectObject( object || this.scene.coreObject, true )[ 0 ];
   }
 
   public getElementOffsetFromCanvas( element ) {

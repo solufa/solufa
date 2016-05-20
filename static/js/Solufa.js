@@ -50148,24 +50148,24 @@ var RdrNode = function (_BaseNode_1$default2) {
             }
         }
     }, {
-        key: "pickObjectByPixel",
-        value: function pickObjectByPixel(x, y) {
+        key: "pickPointByPixel",
+        value: function pickPointByPixel(x, y, object) {
             var vps = this.getVpByReverse();
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y)) {
-                    return vp.pickObjectByPixel(x, y);
+                    return vp.pickPointByPixel(x, y, object);
                 }
             }
         }
     }, {
-        key: "pickObjectByRatio",
-        value: function pickObjectByRatio(x, y) {
+        key: "pickPointByRatio",
+        value: function pickPointByRatio(x, y, object) {
             var vps = this.getVpByReverse();
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y, true)) {
-                    return vp.pickObjectByRatio(x, y);
+                    return vp.pickPointByRatio(x, y, object);
                 }
             }
         }
@@ -50263,19 +50263,19 @@ var VpNode = function (_BaseNode_1$default3) {
             }
         }
     }, {
-        key: "pickObjectByPixel",
-        value: function pickObjectByPixel(x, y) {
+        key: "pickPointByPixel",
+        value: function pickPointByPixel(x, y, object) {
             var ratioX = (x - this.getAttribute("left") * this.width) / (this.getAttribute("width") * this.width);
             var ratioY = (y - (1 - this.getAttribute("bottom") - this.getAttribute("height")) * this.height) / (this.getAttribute("height") * this.height);
-            return this.pickObjectByRatio(ratioX, ratioY);
+            return this.pickPointByRatio(ratioX, ratioY, object);
         }
     }, {
-        key: "pickObjectByRatio",
-        value: function pickObjectByRatio(x, y) {
+        key: "pickPointByRatio",
+        value: function pickPointByRatio(x, y, object) {
             var ratioX = 2 * x - 1;
             var ratioY = -2 * y + 1;
             this.raycaster.setFromCamera(this.tmpVec.set(ratioX, ratioY, 0), this.cameraObject);
-            return this.raycaster.intersectObject(this.scene.coreObject, true)[0];
+            return this.raycaster.intersectObject(object || this.scene.coreObject, true)[0];
         }
     }, {
         key: "getElementOffsetFromCanvas",
