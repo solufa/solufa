@@ -51245,6 +51245,7 @@ var m = require("mithril");
 var three = require("three");
 var GomlDoc_1 = require("./Goml/GomlDoc");
 var update_1 = require("./update");
+var adminCoreObject_1 = require("./Goml/adminCoreObject");
 var SolufaInit = function SolufaInit(version) {
     var canvas = document.createElement("canvas");
     var hasGl = window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
@@ -51276,6 +51277,13 @@ var SolufaInit = function SolufaInit(version) {
     Solufa.noConflict = function () {
         window.S = Solufa._S;
     };
+    Solufa.getElementByObject = function (object) {
+        var target = object;
+        while (!adminCoreObject_1.getGomlElement(target) && target.parent) {
+            target = target.parent;
+        }
+        return adminCoreObject_1.getGomlElement(target);
+    };
     m.deps({
         cancelAnimationFrame: window.cancelAnimationFrame,
         document: doc,
@@ -51288,7 +51296,7 @@ var SolufaInit = function SolufaInit(version) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = SolufaInit;
 
-},{"./Goml/GomlDoc":296,"./update":307,"babel-polyfill":1,"mithril":291,"three":293}],306:[function(require,module,exports){
+},{"./Goml/GomlDoc":296,"./Goml/adminCoreObject":299,"./update":307,"babel-polyfill":1,"mithril":291,"three":293}],306:[function(require,module,exports){
 "use strict";
 
 var Init_1 = require("./Init");

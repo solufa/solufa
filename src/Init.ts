@@ -8,6 +8,7 @@ import * as three from "three";
 
 import GomlDoc from "./Goml/GomlDoc";
 import { updateS as update } from "./update";
+import { getGomlElement as getElement } from "./Goml/adminCoreObject";
 
 const SolufaInit = ( version: string ) => {
 
@@ -45,6 +46,13 @@ const SolufaInit = ( version: string ) => {
   (<any>Solufa)._S = (<any>window).S;
   (<any>Solufa).noConflict = function() {
      (<any>window).S = (<any>Solufa)._S;
+  };
+  (<any>Solufa).getElementByObject = function( object ) {
+    let target = object;
+    while ( !getElement( target ) && target.parent ) {
+      target = target.parent;
+    }
+    return getElement( target );
   };
 
   m.deps({
