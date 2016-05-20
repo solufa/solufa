@@ -425,6 +425,10 @@ THREE.OBJLoader.prototype = {
  * @author angelxuanchang
  */
 
+var mtls = [];
+var mtlUrlList = [];
+
+
 THREE.MTLLoader = function( manager ) {
 
 	this.manager = ( manager !== undefined ) ? manager : THREE.DefaultLoadingManager;
@@ -437,15 +441,44 @@ THREE.MTLLoader.prototype = {
 
 	load: function ( url, onLoad, onProgress, onError ) {
 
-		var scope = this;
+	  var index = mtlUrlList.indexOf( this.path + url );
 
-		var loader = new THREE.XHRLoader( this.manager );
-		loader.setPath( this.path );
-		loader.load( url, function ( text ) {
+	  if ( index !== -1 ) {
+			var data = mtls[ index ];
+	    if ( Array.isArray( data ) ) { // waiting
+	      data.push( { onLoad: onLoad, onError: onError, onProgress: onProgress } );
+	    } else if ( data.type === "loaded" ) {
+				onLoad( data.data );
+	    } else if ( data.type === "error" ) {
+				onError( data.data );
+			}
+	  } else {
+	    mtlUrlList.push( this.path + url );
+	    mtls.push( [ { onLoad: onLoad, onProgress: onProgress, onError: onError } ] ); // isArray: waiting
+	    index = mtls.length - 1;
 
-			onLoad( scope.parse( text ) );
+			var scope = this;
+			var loader = new THREE.XHRLoader( this.manager );
+			loader.setPath( this.path );
+			loader.load( url, function ( text ) {
 
-		}, onProgress, onError );
+				var mtl = scope.parse( text );
+				mtls[ index ].forEach( function( param ) {
+					param.onLoad( mtl );
+				});
+				mtls[ index ] = { type: "loaded", data: mtl };
+
+			}, function( e ) { // progress
+				mtls[ index ].forEach( function( param ) {
+					param.onProgress && param.onProgress( e );
+				});
+			}, function( e ) { // error
+				mtls[ index ].forEach( function( param ) {
+					param.onError && param.onError( e );
+				});
+				mtls[ index ] = { type: "error", data: e };
+			} );
+	  }
 
 	},
 
