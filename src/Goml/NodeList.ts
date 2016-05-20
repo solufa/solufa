@@ -325,6 +325,21 @@ class VpNode extends BaseNode {
     }
   }
 
+  public pickObjectByPixel( x: number, y: number ) {
+    const ratioX = ( x - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width );
+    const ratioY = ( y - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
+      ( this.getAttribute( "height" ) * this.height );
+    return this.pickObjectByRatio( ratioX, ratioY );
+  }
+
+  public pickObjectByRatio( x: number, y: number ) {
+    const ratioX = 2 * x - 1;
+    const ratioY = -2 * y + 1;
+
+    this.raycaster.setFromCamera( this.tmpVec.set( ratioX, ratioY, 0 ), this.cameraObject );
+    return this.raycaster.intersectObject( this.scene.coreObject, true )[ 0 ];
+  }
+
   public getElementOffsetFromCanvas( element ) {
     let matrix = element.coreObject.matrixWorld.elements;
     this.tmpVec.set( matrix[ 12 ], matrix[ 13 ], matrix[ 14 ] ).project( this.cameraObject );

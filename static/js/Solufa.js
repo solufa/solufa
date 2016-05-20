@@ -50231,6 +50231,21 @@ var VpNode = function (_BaseNode_1$default3) {
             }
         }
     }, {
+        key: "pickObjectByPixel",
+        value: function pickObjectByPixel(x, y) {
+            var ratioX = (x - this.getAttribute("left") * this.width) / (this.getAttribute("width") * this.width);
+            var ratioY = (y - (1 - this.getAttribute("bottom") - this.getAttribute("height")) * this.height) / (this.getAttribute("height") * this.height);
+            return this.pickObjectByRatio(ratioX, ratioY);
+        }
+    }, {
+        key: "pickObjectByRatio",
+        value: function pickObjectByRatio(x, y) {
+            var ratioX = 2 * x - 1;
+            var ratioY = -2 * y + 1;
+            this.raycaster.setFromCamera(this.tmpVec.set(ratioX, ratioY, 0), this.cameraObject);
+            return this.raycaster.intersectObject(this.scene.coreObject, true)[0];
+        }
+    }, {
         key: "getElementOffsetFromCanvas",
         value: function getElementOffsetFromCanvas(element) {
             var matrix = element.coreObject.matrixWorld.elements;
