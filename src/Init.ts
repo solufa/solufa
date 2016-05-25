@@ -48,6 +48,7 @@ const SolufaInit = ( version: string ) => {
   };
 
   m.deps({
+    XMLHttpRequest: window.XMLHttpRequest,
     cancelAnimationFrame: window.cancelAnimationFrame,
     document: doc,
     location: window.location,
@@ -55,6 +56,7 @@ const SolufaInit = ( version: string ) => {
   });
 
   (<any>window).Solufa = (<any>window).S = Solufa;
+  (<any>window).THREE = three;
 
   console.log( "%cSolufa " + version,
     "font-size: 250%; text-shadow: 1px 1px 2px rgba(0,0,0,.8); color: #fff; font-weight: bold; font-family: Georgia; font-style: italic;" );

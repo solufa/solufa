@@ -1,0 +1,300 @@
+<script src="../js/Solufa.min.js"></script>
+<script src="../components/Solufa-OrbitVp.js"></script>
+<script src="../js/MSXTransformer.js"></script>
+<script type="text/msx;harmony=true">
+S( function( m ) {
+  // Parameters
+  var dt = 1/60, N=40;
+
+  // Data arrays. Contains all our kinematic data we need for rendering.
+  var positions = new Float32Array(N*3);
+  var quaternions = new Float32Array(N*4);
+
+  // Create a blob for the inline worker code
+  var blob = new Blob([document.querySelector('#worker1').textContent],{type:'text/javascript'});
+
+  // Create worker
+  var worker = new Worker(window.URL.createObjectURL(blob));
+  worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+
+  var sendTime; // Time when we sent last message
+  worker.onmessage = function(e) {
+
+      // Get fresh data from the worker
+      positions = e.data.positions;
+      quaternions = e.data.quaternions;
+      m.redraw();
+
+      // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
+      var delay = dt * 1000 - (Date.now()-sendTime);
+      if(delay < 0){
+          delay = 0;
+      }
+      setTimeout(sendDataToWorker,delay);
+  }
+
+  function phisyInit( e, isInit ) {
+    if ( isInit ) return;
+    sendDataToWorker();
+  }
+
+  var isMoving = false;
+  var markerPos = [ 0, 0, 0 ];
+  var jointPosition;
+  var constrainedIndex;
+
+  function sendDataToWorker(){
+      sendTime = Date.now();
+      worker.postMessage({
+          N : N,
+          dt : dt,
+          cannonUrl : document.location.href.replace(/\/[^/]*$/,"/") + "/cannon.min.js",
+          positions : positions,
+          quaternions : quaternions,
+          isMoving: isMoving,
+          constrainedIndex: constrainedIndex,
+          markerPos: markerPos
+      },[positions.buffer, quaternions.buffer]);
+  }
+
+  var d = 20;
+
+  var App = {
+    controller: function() {
+      return {
+        floorGeo: {
+          type: "Plane",
+          value: [ 100, 100 ]
+        },
+        floorMtl: {
+          type: "MeshLambert",
+          value: { color: "#777" }
+        },
+        boxGeo: {
+          type: "BoxBuffer",
+          value: [ 1, 1, 1, 10, 10 ]
+        },
+        boxMtl: {
+          type: "MeshPhong",
+          value: {
+            color: 0x888888
+          }
+        },
+        markerGeo: {
+          type: "SphereBuffer",
+          value: [ .3, 8, 8 ]
+        },
+        markerMtl: {
+          type: "MeshLambert",
+          value: {
+            color: "#f00"
+          }
+        },
+        wallGeo: {
+          type: "PlaneBuffer",
+          value: [ 100, 100 ]
+        },
+        wallMtl: {
+          type: "MeshBasic"
+        },
+        N: { length: N },
+        lightShadow: {
+          mapSize: 1024,
+          left: -d,
+          right: d,
+          top: d,
+          bottom: -d,
+          far: 3 * d,
+          near: d
+        },
+        lightStyle: { pos: [ d, d, d ] },
+        camStyle: { pos: [ Math.cos( Math.PI/5 ) * 20,
+                            10,
+                            Math.sin( Math.PI/5 ) * 20 ] }
+      };
+    },
+    view: function( ctrl ) {
+
+      var wallStyle = isMoving ? { pos: markerPos, quat: S.document.getElementById( "mainCam" ).style.quat, opacity: 0 } : { opacity: 0 };
+
+      return <scene config={phisyInit}>
+        <obj>
+        { Array.apply(null, ctrl.N).map( ( e, idx )=><mesh class="box" key={ idx } geo={ctrl.boxGeo} mtl={ctrl.boxMtl} receiveShadow={true} castShadow={true} style={{ pos: [ positions[ ( ++idx ) * 3 ], positions[ idx * 3 + 1 ], positions[ idx * 3 + 2 ] ], quat: [ quaternions[ idx * 4 ], quaternions[ idx * 4 + 1 ], quaternions[ idx * 4 + 2 ], quaternions[ idx * 4 + 3 ] ] }}/> )}
+        </obj>
+        <obj id="wall">
+          <mesh geo={ ctrl.wallGeo } mtl={ ctrl.wallMtl } style={ wallStyle }/>
+          <mesh geo={ ctrl.floorGeo } mtl={ ctrl.floorMtl } receiveShadow={true} style={{ pos: [ positions[ 0 ], positions[ 1 ], positions[ 2 ] ], quat: [ quaternions[ 0 ], quaternions[ 1 ], quaternions[ 2 ], quaternions[ 3 ] ] }}/>
+        </obj>
+        <mesh geo={ ctrl.markerGeo } mtl={ ctrl.markerMtl } display={ isMoving } style={{ pos: markerPos }}/>
+        <cam id="mainCam" style={ctrl.camStyle}/>
+        <light init={{ type: "Dir" }} castShadow={ctrl.lightShadow} style={ctrl.lightStyle}/>
+        <light init={{ type: "Amb", value: [ 0x666666 ] }}/>
+      </scene>;
+    }
+  };
+
+  function config( elem, isInit ) {
+
+    if ( isInit ) return;
+
+    var canvas = document.getElementsByTagName( "canvas" )[ 0 ];
+
+    function touchstart( e ) {
+
+      if ( !isMoving && ( !e.touches || e.touches.length === 1 ) ) {
+        var result = elem.pickPointByPixel( e.layerX, e.layerY );
+        if ( result && S.document.getElementByObject( result.object ).className === "box" ) {
+          e.preventDefault();
+
+          markerPos = [ result.point.x, result.point.y, result.point.z ];
+          isMoving = true;
+          constrainedIndex = result.object.parent.children.indexOf( result.object );
+          m.redraw();
+          render();
+        }
+      }
+    }
+
+    function touchmove( e ) {
+      if ( isMoving ) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var result = elem.pickPointByPixel( e.layerX, e.layerY, S.document.getElementById( "wall" ) );
+        if ( result ) {
+          markerPos = [ result.point.x, result.point.y, result.point.z ];
+        }
+      }
+    }
+
+    function touchend( e ) {
+      if ( isMoving ) {
+        isMoving = false;
+        m.redraw();
+        render();
+      }
+    }
+
+    canvas.addEventListener( "mousedown", touchstart, false );
+    canvas.addEventListener( "mousemove", touchmove, false );
+    canvas.addEventListener( "mouseup", touchend, false );
+
+    canvas.addEventListener( "touchstart", touchstart, false );
+    canvas.addEventListener( "touchmove", touchmove, false );
+    canvas.addEventListener( "touchend", touchend, false );
+
+  }
+
+  m.mount( S.document.body, App );
+  function render() {
+  	m.render( S.document.head,
+  		<rdr init={{ frame: "#solufa", antialias: true }} config={ config } enableShadow={true}>
+  			<OrbitVp enabled={!isMoving} maxPolarAngle={Math.PI/2-.1} cam="#mainCam"/>
+  		</rdr>
+  	);
+  }
+
+  render();
+
+});
+</script>
+<script id="worker1" type="javascript/worker">
+    var world;
+    var isMoving = false;
+    var mouseConstraint;
+    var jointBody;
+
+    self.onmessage = function(e) {
+
+        if (e.data.cannonUrl && !world) {
+            // Load cannon.js
+            importScripts(e.data.cannonUrl);
+
+            // Init physics
+            world = new CANNON.World();
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.gravity.set(0,-10,0);
+            world.solver.tolerance = 0.001;
+
+            // Ground plane
+            var plane = new CANNON.Plane();
+            var groundBody = new CANNON.Body({ mass: 0 });
+            groundBody.addShape(plane);
+            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+            world.addBody(groundBody);
+
+            // Create N cubes
+            var shape = new CANNON.Box(new CANNON.Vec3(0.5,0.5,0.5));
+            for(var i=0; i!==e.data.N; i++){
+                var body = new CANNON.Body({ mass: 1 });
+                body.addShape(shape);
+                body.position.set(Math.random()-0.5,2.5*i+0.5,Math.random()-0.5);
+                world.addBody(body);
+            }
+
+            // Joint body
+            var shape = new CANNON.Sphere(0.1);
+            jointBody = new CANNON.Body({ mass: 0 });
+            jointBody.addShape(shape);
+            jointBody.collisionFilterGroup = 0;
+            jointBody.collisionFilterMask = 0;
+            world.add(jointBody);
+        }
+
+        if ( isMoving !== e.data.isMoving ) {
+          isMoving = e.data.isMoving;
+
+          if ( isMoving ) {
+            var constrainedBody = world.bodies[ e.data.constrainedIndex + 1 ];
+            var v1 = new CANNON.Vec3( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] ).vsub(constrainedBody.position);
+            var antiRot = constrainedBody.quaternion.inverse();
+            pivot = antiRot.vmult(v1);
+            jointBody.position.set( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] );
+            mouseConstraint = new CANNON.PointToPointConstraint(constrainedBody, pivot, jointBody, new CANNON.Vec3(0,0,0));
+            world.addConstraint(mouseConstraint);
+          } else {
+            world.removeConstraint(mouseConstraint);
+            mouseConstraint = null;
+          }
+        } else if ( isMoving ) {
+          jointBody.position.set( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] );
+          mouseConstraint.update();
+        }
+
+        // Step the world
+        world.step(e.data.dt);
+
+        // Copy over the data to the buffers
+        var positions = e.data.positions;
+        var quaternions = e.data.quaternions;
+        for(var i=0; i!==world.bodies.length; i++){
+            var b = world.bodies[i],
+                p = b.position,
+                q = b.quaternion;
+            positions[3*i + 0] = p.x;
+            positions[3*i + 1] = p.y;
+            positions[3*i + 2] = p.z;
+            quaternions[4*i + 0] = q.x;
+            quaternions[4*i + 1] = q.y;
+            quaternions[4*i + 2] = q.z;
+            quaternions[4*i + 3] = q.w;
+        }
+
+        // Send data back to the main thread
+        self.postMessage({
+            positions:positions,
+            quaternions:quaternions
+        }, [positions.buffer,
+            quaternions.buffer]);
+    };
+</script>
+<style>
+#solufa {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+<div id="solufa"></div>

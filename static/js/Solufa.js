@@ -51136,12 +51136,20 @@ exports.default = function (value) {
         var geometry = new THREE.BufferGeometry();
         for (var key in value.attrs) {
             if (key) {
-                geometry.addAttribute(key, new THREE.BufferAttribute(new Float32Array(value.attrs[key]), key === "uv" ? 2 : 3));
+                geometry.addAttribute(key, new THREE.BufferAttribute(new Float32Array(value.attrs[key]), key === "index" ? 1 : key === "uv" ? 2 : 3));
             }
         }
         return geometry;
     } else {
-        return new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5], value.value[6], value.value[7]);
+        var _geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5], value.value[6], value.value[7]);
+        if (value.attrs) {
+            for (var _key in value.attrs) {
+                if (_key) {
+                    _geometry.addAttribute(_key, new THREE.BufferAttribute(new Float32Array(value.attrs[_key]), _key === "index" ? 1 : _key === "uv" ? 2 : 3));
+                }
+            }
+        }
+        return _geometry;
     }
 };
 
@@ -51287,12 +51295,14 @@ var SolufaInit = function SolufaInit(version) {
         window.S = Solufa._S;
     };
     m.deps({
+        XMLHttpRequest: window.XMLHttpRequest,
         cancelAnimationFrame: window.cancelAnimationFrame,
         document: doc,
         location: window.location,
         requestAnimationFrame: window.requestAnimationFrame
     });
     window.Solufa = window.S = Solufa;
+    window.THREE = three;
     console.log("%cSolufa " + version, "font-size: 250%; text-shadow: 1px 1px 2px rgba(0,0,0,.8); color: #fff; font-weight: bold; font-family: Georgia; font-style: italic;");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
