@@ -1,4 +1,7 @@
-Solufa( function( m ) {
+!function() {
+
+  var m = Solufa.m;
+
   function setUv( elem, isInit ) {
     if ( isInit ) return;
 
@@ -56,4 +59,4 @@ Solufa( function( m ) {
   };
 
   window.ThetaSphere = ThetaSphere;
-});
+}();

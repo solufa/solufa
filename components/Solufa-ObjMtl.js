@@ -1,6 +1,7 @@
-Solufa( function( m ) {
+!function() {
 
 var THREE = Solufa.THREE;
+var m = Solufa.m;
 
 /**
  * @author mrdoob / http://mrdoob.com/
@@ -971,4 +972,4 @@ var Obj = {
 
 window.ObjMtl = Obj;
 
-});
+}();

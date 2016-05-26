@@ -2,7 +2,7 @@
   "name": "Solufa",
   "version": "0.1.0",
   "description": "Speed, Small and Scalable Web3D/VR library",
-  "main": "",
+  "main": "./static/js/Solufa.js",
   "scripts": {
     "test": "ava ./test/test.js",
     "start": "gulp"
@@ -14,7 +14,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/m-mitsuhide/jThree"
+    "url": "https://github.com/amatelus/solufa/"
   },
   "devDependencies": {
     "ava": "^0.14.0",

@@ -1,6 +1,7 @@
-Solufa( function( m ) {
+!function() {
 
 var THREE = Solufa.THREE;
+var m = Solufa.m;
 
 /**
  * @author richt / http://richt.me
@@ -137,4 +138,4 @@ var JyroSync = {
 
 window.JyroSync = JyroSync;
 
-});
+}();

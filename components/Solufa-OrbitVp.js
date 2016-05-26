@@ -1,6 +1,7 @@
-Solufa( function( m ) {
+!function() {
 
 var THREE = Solufa.THREE;
+var m = Solufa.m;
 
 /**
  * @author qiao / https://github.com/qiao
@@ -1074,4 +1075,4 @@ var Orbit = {
 
 window.OrbitVp = Orbit;
 
-});
+}();

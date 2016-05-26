@@ -1,7 +1,8 @@
-Solufa( function( m ) {
+!function() {
 
   var id = 0;
-  var j3 = Solufa;
+  var S = Solufa;
+  var m = Solufa.m;
 
   function load( elem, isInit, ctx ) {
     var ctrl = this.attrs.ctrl;
@@ -25,12 +26,12 @@ Solufa( function( m ) {
 
   var StereoVp = {
     controller: function( attrs ) {
-      var mainCam = j3.document.body.querySelector( attrs.cam );
-      var leftCam = j3.document.createElement( "cam" );
+      var mainCam = S.document.body.querySelector( attrs.cam );
+      var leftCam = S.document.createElement( "cam" );
       leftCam.id = "stereoLeftCam" + id;
       mainCam.appendChild( leftCam );
 
-      var rightCam = j3.document.createElement( "cam" );
+      var rightCam = S.document.createElement( "cam" );
       rightCam.id = "stereoRightCam" + id;
       mainCam.appendChild( rightCam );
 
@@ -88,7 +89,7 @@ Solufa( function( m ) {
     },
     view: function( ctrl, attrs, child ) {
       if ( ctrl.selector !== attrs.cam ) {
-        var mainCam = j3.document.body.querySelector( attrs.cam );
+        var mainCam = S.document.body.querySelector( attrs.cam );
         mainCam.appendChild( ctrl.leftCam );
         mainCam.appendChild( ctrl.rightCam );
         ctrl.selector = attrs.cam;
@@ -106,4 +107,4 @@ Solufa( function( m ) {
 
   window.StereoVp = StereoVp;
 
-});
+}();
