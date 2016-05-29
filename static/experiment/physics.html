@@ -3,6 +3,99 @@
 <script src="../js/MSXTransformer.js"></script>
 <script type="text/msx;harmony=true">
 S( function( m ) {
+
+  var workerScript = function() {/*
+
+      var world;
+      var isMoving = false;
+      var mouseConstraint;
+      var jointBody;
+
+      self.onmessage = function(e) {
+
+          if (e.data.cannonUrl && !world) {
+              // Load cannon.js
+              importScripts(e.data.cannonUrl);
+
+              // Init physics
+              world = new CANNON.World();
+              world.broadphase = new CANNON.NaiveBroadphase();
+              world.gravity.set(0,-10,0);
+              world.solver.tolerance = 0.001;
+
+              // Ground plane
+              var plane = new CANNON.Plane();
+              var groundBody = new CANNON.Body({ mass: 0 });
+              groundBody.addShape(plane);
+              groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+              world.addBody(groundBody);
+
+              // Create N cubes
+              var shape = new CANNON.Box(new CANNON.Vec3(0.5,0.5,0.5));
+              for(var i=0; i!==e.data.N; i++){
+                  var body = new CANNON.Body({ mass: 1 });
+                  body.addShape(shape);
+                  body.position.set(Math.random()-0.5,2.5*i+0.5,Math.random()-0.5);
+                  world.addBody(body);
+              }
+
+              // Joint body
+              var shape = new CANNON.Sphere(0.1);
+              jointBody = new CANNON.Body({ mass: 0 });
+              jointBody.addShape(shape);
+              jointBody.collisionFilterGroup = 0;
+              jointBody.collisionFilterMask = 0;
+              world.add(jointBody);
+          }
+
+          if ( isMoving !== e.data.isMoving ) {
+            isMoving = e.data.isMoving;
+
+            if ( isMoving ) {
+              var constrainedBody = world.bodies[ e.data.constrainedIndex + 1 ];
+              var v1 = new CANNON.Vec3( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] ).vsub(constrainedBody.position);
+              var antiRot = constrainedBody.quaternion.inverse();
+              pivot = antiRot.vmult(v1);
+              jointBody.position.set( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] );
+              mouseConstraint = new CANNON.PointToPointConstraint(constrainedBody, pivot, jointBody, new CANNON.Vec3(0,0,0));
+              world.addConstraint(mouseConstraint);
+            } else {
+              world.removeConstraint(mouseConstraint);
+              mouseConstraint = null;
+            }
+          } else if ( isMoving ) {
+            jointBody.position.set( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] );
+            mouseConstraint.update();
+          }
+
+          // Step the world
+          world.step(e.data.dt);
+
+          // Copy over the data to the buffers
+          var positions = e.data.positions;
+          var quaternions = e.data.quaternions;
+          for(var i=0; i!==world.bodies.length; i++){
+              var b = world.bodies[i],
+                  p = b.position,
+                  q = b.quaternion;
+              positions[3*i + 0] = p.x;
+              positions[3*i + 1] = p.y;
+              positions[3*i + 2] = p.z;
+              quaternions[4*i + 0] = q.x;
+              quaternions[4*i + 1] = q.y;
+              quaternions[4*i + 2] = q.z;
+              quaternions[4*i + 3] = q.w;
+          }
+
+          // Send data back to the main thread
+          self.postMessage({
+              positions:positions,
+              quaternions:quaternions
+          }, [positions.buffer,
+              quaternions.buffer]);
+      };
+  */}.toString().match(/\/\*((.|\n)*)\*\//)[1];
+
   // Parameters
   var dt = 1/60, N=40;
 
@@ -11,7 +104,7 @@ S( function( m ) {
   var quaternions = new Float32Array(N*4);
 
   // Create a blob for the inline worker code
-  var blob = new Blob([document.querySelector('#worker1').textContent],{type:'text/javascript'});
+  var blob = new Blob([workerScript],{type:'text/javascript'});
 
   // Create worker
   var worker = new Worker(window.URL.createObjectURL(blob));
@@ -108,9 +201,7 @@ S( function( m ) {
           near: d
         },
         lightStyle: { pos: [ d, d, d ] },
-        camStyle: { pos: [ Math.cos( Math.PI/5 ) * 20,
-                            10,
-                            Math.sin( Math.PI/5 ) * 20 ] }
+        camStyle: { pos: [ 8, 3, 0 ] }
       };
     },
     view: function( ctrl ) {
@@ -197,96 +288,7 @@ S( function( m ) {
   render();
 
 });
-</script>
-<script id="worker1" type="javascript/worker">
-    var world;
-    var isMoving = false;
-    var mouseConstraint;
-    var jointBody;
 
-    self.onmessage = function(e) {
-
-        if (e.data.cannonUrl && !world) {
-            // Load cannon.js
-            importScripts(e.data.cannonUrl);
-
-            // Init physics
-            world = new CANNON.World();
-            world.broadphase = new CANNON.NaiveBroadphase();
-            world.gravity.set(0,-10,0);
-            world.solver.tolerance = 0.001;
-
-            // Ground plane
-            var plane = new CANNON.Plane();
-            var groundBody = new CANNON.Body({ mass: 0 });
-            groundBody.addShape(plane);
-            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
-            world.addBody(groundBody);
-
-            // Create N cubes
-            var shape = new CANNON.Box(new CANNON.Vec3(0.5,0.5,0.5));
-            for(var i=0; i!==e.data.N; i++){
-                var body = new CANNON.Body({ mass: 1 });
-                body.addShape(shape);
-                body.position.set(Math.random()-0.5,2.5*i+0.5,Math.random()-0.5);
-                world.addBody(body);
-            }
-
-            // Joint body
-            var shape = new CANNON.Sphere(0.1);
-            jointBody = new CANNON.Body({ mass: 0 });
-            jointBody.addShape(shape);
-            jointBody.collisionFilterGroup = 0;
-            jointBody.collisionFilterMask = 0;
-            world.add(jointBody);
-        }
-
-        if ( isMoving !== e.data.isMoving ) {
-          isMoving = e.data.isMoving;
-
-          if ( isMoving ) {
-            var constrainedBody = world.bodies[ e.data.constrainedIndex + 1 ];
-            var v1 = new CANNON.Vec3( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] ).vsub(constrainedBody.position);
-            var antiRot = constrainedBody.quaternion.inverse();
-            pivot = antiRot.vmult(v1);
-            jointBody.position.set( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] );
-            mouseConstraint = new CANNON.PointToPointConstraint(constrainedBody, pivot, jointBody, new CANNON.Vec3(0,0,0));
-            world.addConstraint(mouseConstraint);
-          } else {
-            world.removeConstraint(mouseConstraint);
-            mouseConstraint = null;
-          }
-        } else if ( isMoving ) {
-          jointBody.position.set( e.data.markerPos[ 0 ], e.data.markerPos[ 1 ], e.data.markerPos[ 2 ] );
-          mouseConstraint.update();
-        }
-
-        // Step the world
-        world.step(e.data.dt);
-
-        // Copy over the data to the buffers
-        var positions = e.data.positions;
-        var quaternions = e.data.quaternions;
-        for(var i=0; i!==world.bodies.length; i++){
-            var b = world.bodies[i],
-                p = b.position,
-                q = b.quaternion;
-            positions[3*i + 0] = p.x;
-            positions[3*i + 1] = p.y;
-            positions[3*i + 2] = p.z;
-            quaternions[4*i + 0] = q.x;
-            quaternions[4*i + 1] = q.y;
-            quaternions[4*i + 2] = q.z;
-            quaternions[4*i + 3] = q.w;
-        }
-
-        // Send data back to the main thread
-        self.postMessage({
-            positions:positions,
-            quaternions:quaternions
-        }, [positions.buffer,
-            quaternions.buffer]);
-    };
 </script>
 <style>
 #solufa {

@@ -1,0 +1,221 @@
+<script src="../js/Solufa.min.js"></script>
+<script src="../components/Solufa-OrbitVp.js"></script>
+<script src="../js/MSXTransformer.js"></script>
+<script type="text/msx;harmony=true">
+S( function( m ) {
+  var tileW = 256;
+  var tileH = 246;
+  var App = {
+    controller: function() {
+      return {
+        camStyle: { posZ: 1 },
+        newParam: {
+          ext: "jpg",
+          kind: "gazo1",
+          lat: 32.8869197,
+          lng: 131.0841068,
+          tileX: 5,
+          tileY: 5,
+          zoom: 15
+        },
+        meshDraw: function() {
+          var newParam = this.newParam;
+          //タイル座標を算出
+          var Cx = (newParam.lng / 180 + 1) / 2 * Math.pow(2, newParam.zoom);
+          var Cy = (Math.PI - Math.log(Math.tan((45 + newParam.lat / 2) * Math.PI / 180))) / (2 * Math.PI) * Math.pow(2, newParam.zoom);
+          newParam.Cx = Math.floor(Cx);    //真ん中のタイル座標X
+          newParam.Cy = Math.floor(Cy);    //真ん中のタイル座標Y
+
+          newParam.tileLeft = newParam.Cx - Math.floor(newParam.tileX / 2);    //先頭タイルX
+          newParam.tileTop = newParam.Cy - Math.floor(newParam.tileY / 2);        //先頭タイルY
+
+          var zm = Math.pow(2, newParam.zoom - 14);
+          newParam.tileLeft14 = Math.floor(newParam.tileLeft / zm);
+          newParam.tileTop14 = Math.floor(newParam.tileTop / zm);
+          newParam.tileX14 = Math.ceil((newParam.tileLeft + newParam.tileX - 1) / zm) - newParam.tileLeft14 + 1;
+          newParam.tileY14 = Math.ceil((newParam.tileTop + newParam.tileY) / zm) - newParam.tileTop14 + 1;
+          for(var i = 0; i < newParam.tileX14; i++)
+          {
+              for(var j = 0; j < newParam.tileY14; j++)
+                  //標高タイルを読んで、でこぼこ平面を作る
+                  this.readTile2( i, j);
+          }
+        },
+        readTile2: function( dx, dy ) {
+          var newParam = this.newParam;
+          var csv = "http://cyberjapandata.gsi.go.jp/xyz/dem/14/" +
+                (newParam.tileLeft14 + dx) + "/" + (newParam.tileTop14 + dy) + ".txt";
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", csv, true);
+          xhr.onreadystatechange = function()
+          {
+              if (xhr.readyState === 4) //処理終了
+              {
+                  var hyoko = [];
+                   if(xhr.status === 200)    //成功
+                  {
+                      var txt = xhr.responseText;
+                      var rows = txt.split(String.fromCharCode(10));
+                      for(var R = 0; R < rows.length - 1; R++)
+                      {
+                          var txt2 = rows[R].replace(/(\n)+$/g, '').replace(/(\r)+$/g, '');
+                          hyoko.push(txt2.split(","));
+                      }
+                  }
+                  //画像タイルを読み込む
+                  this.drawTile2( dx, dy, hyoko);
+              }
+          }.bind( this );
+          xhr.send(null);
+        },
+        drawTile2: function( dx, dy, hyoko ) {console.log(this)
+          var newParam = this.newParam;
+          var zm = Math.pow(2, newParam.zoom - 14);
+          var flist = new Array();
+          var allnum = 0;
+          for(var j = 0, py = (newParam.tileTop14 + dy) * zm; j < zm; j++, py++)
+          {
+              flist.push(new Array());
+              for(var i = 0, px = (newParam.tileLeft14 + dx) * zm; i < zm; i++, px++)
+              {
+                  if(py < newParam.tileTop || py >= newParam.tileTop + newParam.tileY ||
+                     px < newParam.tileLeft || px >= newParam.tileLeft + newParam.tileX)
+                      flist[j][i] = undefined;
+                  else
+                  {
+                      obj = new Object();
+                      obj.fname = "http://cyberjapandata.gsi.go.jp/xyz/" + newParam.kind + "/" +
+                                      newParam.zoom + "/" + px + "/" + py + "." + newParam.ext;
+                      obj.name = px + " / " + py;
+                      obj.img = undefined;
+                      allnum++;
+                      flist[j][i] = obj;
+                  }
+              }
+          }
+          var canv = document.createElement("canvas");
+          canv.width = tileW * zm;
+          canv.height = tileH * zm;
+
+          var cnt = 0;
+          for(j = 0; j < flist.length; j++)
+          {
+              for(i = 0; i < flist[j].length; i++)
+              {
+                  if(flist[j][i] != undefined)
+                  {
+                      flist[j][i].img = new Image();
+                      flist[j][i].img.crossOrigin = "*";
+                      flist[j][i].img.onload = function()
+                      {
+                          if (++cnt == allnum) //画像が全部揃ったらメッシュを作成
+                              this.drawMesh2( dx, dy, hyoko, canv, flist);
+                      };
+                      flist[j][i].img.onerror = function()
+                      {
+                          if (++cnt == allnum) //画像が全部揃ったらメッシュを作成
+                              this.drawMesh2( dx, dy, hyoko, canv, flist);
+                      };
+                      flist[j][i].img.src = flist[j][i].fname;
+                  }
+              }
+          }
+        },
+        drawMesh2: function( dx, dy, hyoko, canv, flist ) {
+          var newParam = this.newParam;
+          var zm = Math.pow(2, newParam.zoom - 14);
+
+          //画像作成
+          var ctx = canv.getContext('2d');
+          for(j = 0; j < flist.length; j++)
+          {
+              for(i = 0; i < flist[j].length; i++)
+              {
+                  if(flist[j][i] != undefined)
+                  {
+                      if(flist[j][i].img.width > 0)
+                          ctx.drawImage(flist[j][i].img, i * tileW, j * tileH);
+                      else
+                      {
+                          ctx.fillStyle = "#fffacd";
+                          ctx.fillRect(i * tileW, j * tileH, tileW, tileH);
+                          ctx.fillStyle = "#4169e1";
+                          ctx.font = "italic bold 20px sans-serif";
+                          ctx.fillText(flist[j][i].name, i * tileW + 100, j * tileH + 100);
+                      }
+                  }
+              }
+          }
+
+          // テクスチャを作成
+          var texture = new THREE.Texture(canv);
+          texture.needsUpdate = true;
+          var material = new THREE.MeshLambertMaterial({map: texture});
+
+          //ジオメトリを作成
+          if(hyoko == undefined || hyoko.length == 0)
+              var geometry = new THREE.PlaneBufferGeometry(tileW * zm, tileH * zm, 1, 1);
+          else
+          {
+              //セグメント数
+              var Sw = hyoko[0].length - 1;
+              var Sh = hyoko.length - 1;
+
+              //単位高さを計算
+              var h = 250000 / (((40000 * 1000) / Math.pow(2, newParam.zoom)) * tileW);
+
+              //ジオメトリを作成
+              var geometry = new THREE.PlaneBufferGeometry(tileW * zm, tileH * zm, Sw, Sh);
+              var vertices = geometry.attributes.position.array;
+
+              for(var y = 0; y < Sh + 1; y++)
+              {
+                  for(var x = 0; x < Sw + 1; x++)
+                      //標高データをzにセット
+                      if(hyoko[y][x] != "e")
+                          vertices[(y * (Sw + 1) + x) * 3 + 2] = parseFloat(hyoko[y][x]) * h;
+              }
+
+              //法線ベクトルの自動計算
+              geometry.computeFaceNormals();
+              geometry.computeVertexNormals();
+          }
+
+          //メッシュを作ってシーンに追加
+          var mesh = new THREE.Mesh(geometry, material);
+          mesh.position.x = tileW * zm * dx - newParam.tileX14 * tileW * zm / 2;
+          mesh.position.y = -(tileH * zm * dy - newParam.tileY14 * tileH * zm / 2);
+          scene.add(mesh);
+        }
+      };
+    },
+    view: function( ctrl ) {
+      return <scene config={ ctrl.meshDraw.bind( ctrl ) }>
+        <cam id="mainCam" style={ ctrl.camStyle }/>
+      </scene>;
+    }
+  };
+
+  m.mount( S.document.body, App );
+  function render() {
+  	m.render( S.document.head,
+  		<rdr init={{ frame: "#solufa", antialias: true }}>
+  			<OrbitVp maxPolarAngle={Math.PI/2-.1} cam="#mainCam"/>
+  		</rdr>
+  	);
+  }
+
+  render();
+
+});
+</script>
+<style>
+#solufa {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+<div id="solufa"></div>
