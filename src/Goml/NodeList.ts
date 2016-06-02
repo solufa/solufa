@@ -8,6 +8,8 @@ import createGeometry from "./createGeometry";
 import { setCoreObject as setObject } from "./adminCoreObject";
 import { getGomlElement as getElement } from "./adminCoreObject";
 
+const tmpVec = new THREE.Vector3; // for translate
+
 class GomlNode extends BaseNode {
   private _coreObject;
   private _lightHelper;
@@ -82,6 +84,24 @@ class GomlNode extends BaseNode {
       }
       this.coreObject.remove( helper );
     }
+  }
+
+  public translate( x, y, z ) {
+    tmpVec.set( x, y, z );
+    let length = tmpVec.length();
+    this.coreObject.translateOnAxis( tmpVec.normalize(), length );
+  }
+
+  public translateX( distance ) {
+    this.coreObject.translateX( distance );
+  }
+
+  public translateY( distance ) {
+    this.coreObject.translateY( distance );
+  }
+
+  public translateZ( distance ) {
+    this.coreObject.translateZ( distance );
   }
 
 }
@@ -217,34 +237,6 @@ class RdrNode extends BaseNode {
     }
   }
 
-  private traverseVp( callback ) {
-    this.childNodes.forEach( child => {
-      if ( child.tagName === "vps" ) {
-        child.childNodes.forEach( callback );
-      } else {
-        callback( child );
-      }
-    });
-  }
-
-  private getVpByReverse() {
-    const vpList = this.arrayForGetVpByReverse;
-    vpList.length = 0;
-
-    for ( let i = this.childNodes.length - 1, child; i > - 1; i-- ) {
-      child = this.childNodes[ i ];
-      if ( child.tagName === "vps" ) {
-        for ( let j = child.childNodes.length - 1; j > -1; j-- ) {
-          vpList.push( child.childNodes[ j ] );
-        }
-      } else {
-        vpList.push( child );
-      }
-    }
-
-    return vpList;
-  }
-
   constructor( tagName: string, gomlDoc ) {
     super( tagName, gomlDoc );
     this.canvasHandler = e => {
@@ -287,6 +279,34 @@ class RdrNode extends BaseNode {
       vp.setSize( this.canvas.width, this.canvas.height );
     };
 
+  }
+
+  private traverseVp( callback ) {
+    this.childNodes.forEach( child => {
+      if ( child.tagName === "vps" ) {
+        child.childNodes.forEach( callback );
+      } else {
+        callback( child );
+      }
+    });
+  }
+
+  private getVpByReverse() {
+    const vpList = this.arrayForGetVpByReverse;
+    vpList.length = 0;
+
+    for ( let i = this.childNodes.length - 1, child; i > - 1; i-- ) {
+      child = this.childNodes[ i ];
+      if ( child.tagName === "vps" ) {
+        for ( let j = child.childNodes.length - 1; j > -1; j-- ) {
+          vpList.push( child.childNodes[ j ] );
+        }
+      } else {
+        vpList.push( child );
+      }
+    }
+
+    return vpList;
   }
 
 }
