@@ -454,7 +454,24 @@ class VpNode extends BaseNode {
 
   public setAspect(): void {
     if ( this.cameraObject ) {
-      this.cameraObject.aspect = +this.getAttribute( "width" ) * this.width / ( +this.getAttribute( "height" ) * this.height );
+      const aspect = +this.getAttribute( "width" ) * this.width / ( +this.getAttribute( "height" ) * this.height );
+      if ( this.cameraObject instanceof THREE.PerspectiveCamera ) {
+        this.cameraObject.aspect = aspect;
+      } else { // OrthographicCamera
+        const cam = getElement( this.cameraObject );
+        const width = cam.getAttribute( "width" );
+        const height = cam.getAttribute( "height" );
+
+        if ( width && height ) { // user manual
+          return;
+        } else if ( width ) {
+          this.cameraObject.top = width / aspect / 2;
+          this.cameraObject.bottom = width / aspect / - 2;
+        } else if ( height ) {
+          this.cameraObject.left = height * aspect / - 2;
+          this.cameraObject.right = height * aspect / 2;
+        }
+      }
       this.cameraObject.updateProjectionMatrix();
     }
   }
@@ -488,13 +505,6 @@ export default {
       if ( /^(fov|near|far)$/.test( name ) ) {
         this.coreObject[ name ] = value;
         this.coreObject.updateProjectionMatrix();
-      }
-    }
-
-    public getAttrHook( name: string ) {
-
-      if ( /^(fov|near|far)$/.test( name ) ) {
-        return this.coreObject[ name ];
       }
     }
 
@@ -626,6 +636,31 @@ export default {
     constructor( gomlDoc ) {
       super( "obj", gomlDoc );
       this.coreObject = new THREE.Object3D;
+    }
+  },
+
+  ocam: class extends GomlNode {
+
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
+
+      if ( /^(zoom|near|far)$/.test( name ) ) {
+        this.coreObject[ name ] = value;
+        this.coreObject.updateProjectionMatrix();
+      } else if ( name === "width" ) {
+        this.coreObject.left = value / - 2;
+        this.coreObject.right = value / 2;
+        this.coreObject.updateProjectionMatrix();
+      } else if ( name === "height" ) {
+        this.coreObject.top = value / 2;
+        this.coreObject.bottom = value / - 2;
+        this.coreObject.updateProjectionMatrix();
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "ocam", gomlDoc );
+      this.coreObject = new THREE.OrthographicCamera( -1, 1, 1, -1 );
     }
   },
 
