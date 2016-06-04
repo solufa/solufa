@@ -1,6 +1,6 @@
 import BaseNode from "./BaseNode";
 import errorMessage from "../utils/errorMessage";
-import { updateS as update } from "../update";
+import { updateGoml as update } from "../update";
 import createCanvas from "./createCanvas";
 
 export default class extends BaseNode {
