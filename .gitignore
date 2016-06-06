@@ -1,4 +1,5 @@
 static/contract/
 static/angelhack/
+static/experiment/
 node_modules/
 npm-debug.log

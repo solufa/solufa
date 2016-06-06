@@ -19,7 +19,7 @@ let i;
   }
 })( 0 );
 
-function updateS( callback: () => {}, append?: boolean ): void {
+function updateS( callback, append?: boolean ): void {
   if ( append === false ) {
     const index = updateSList.indexOf( callback );
     if ( index !== -1 ) {
@@ -30,7 +30,7 @@ function updateS( callback: () => {}, append?: boolean ): void {
   }
 }
 
-function updateGoml( callback: () => {}, append?: boolean ): void {
+function updateGoml( callback, append?: boolean ): void {
   if ( append === false ) {
     const index = updateGomlList.indexOf( callback );
     if ( index !== -1 ) {

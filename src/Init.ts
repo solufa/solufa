@@ -8,6 +8,7 @@ import * as three from "three";
 
 import GomlDoc from "./Goml/GomlDoc";
 import { updateS as update } from "./update";
+import physics from "./Goml/physics";
 
 const SolufaInit = ( version: string ) => {
 
@@ -43,6 +44,7 @@ const SolufaInit = ( version: string ) => {
   (<any>Solufa).document = doc;
   (<any>Solufa).version = version;
   (<any>Solufa)._S = (<any>window).S;
+  (<any>Solufa).initPhysics = physics.init;
   (<any>Solufa).noConflict = function() {
      (<any>window).S = (<any>Solufa)._S;
   };

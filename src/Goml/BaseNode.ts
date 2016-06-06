@@ -54,6 +54,8 @@ class BaseNode extends EventNode {
   public getAttrHook( name ) { return this.attrList[ name ] ? this.attrList[ name ].value : null; }
   public removeHook( childNode ) { return; }
   public appendHook( childNode ) { return; }
+  public removedHook( parentNode ) { return; }
+  public appendedHook( parentNode ) { return; }
 
   public setAttribute( name: string, value: any ): void {
     if ( this.attrList[ name ] ) {
@@ -90,6 +92,7 @@ class BaseNode extends EventNode {
     child.parentNode = this;
     this._resetChildHandlerTypeList();
     this.appendHook( child );
+    child.appendedHook( this );
   }
 
   public insertBefore( newNode, node ): void {
@@ -106,6 +109,7 @@ class BaseNode extends EventNode {
     newNode.parentNode = this;
     this._resetChildHandlerTypeList();
     this.appendHook( newNode );
+    newNode.appendedHook( this );
   }
 
   public removeChild( childNode ): void {
@@ -115,6 +119,7 @@ class BaseNode extends EventNode {
       childNode.parentNode = null;
       this._resetChildHandlerTypeList();
       this.removeHook( childNode );
+      childNode.removedHook( this );
     }
   }
 

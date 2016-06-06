@@ -1,0 +1,214 @@
+<script src="../js/Solufa.min.js"></script>
+<script src="../components/Solufa-OrbitVp.js?0"></script>
+<script src="../js/MSXTransformer.js"></script>
+<script src="../js/Stats.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<script type="text/msx;harmony=true">
+S( function( m ) {
+
+	var stats = new Stats;
+  document.body.appendChild(stats.domElement);
+	S.update( stats.update.bind( stats ) );
+
+  // Parameters
+
+
+  var d = 20;
+
+  S.initPhysics( "../js/cannon.min.js" );
+	var isMoving = false;
+	var rdr = null;
+
+  var App = {
+    controller: function() {
+      return {
+        floorGeo: {
+          type: "Plane",
+          value: [ 100, 100 ]
+        },
+        floorMtl: {
+          type: "MeshLambert",
+          value: { color: "#777" }
+        },
+        boxGeo: {
+          type: "BoxBuffer",
+          value: [ .5, 1, 1.5 ]
+        },
+        boxMtl: {
+          type: "MeshPhong",
+          value: {
+            color: "#f0f"
+          }
+        },
+        sphereGeo: {
+          type: "SphereBuffer",
+          value: [ .5, 64, 64 ]
+        },
+        sphereMtl: {
+          type: "MeshPhong",
+          value: {
+            color: "#0ff"
+          }
+        },
+        markerGeo: {
+          type: "SphereBuffer",
+          value: [ .3, 8, 8 ]
+        },
+        markerMtl: {
+          type: "MeshLambert",
+          value: {
+            color: "#f00"
+          }
+        },
+				wall: null,
+        wallGeo: {
+          type: "PlaneBuffer",
+          value: [ 100, 100 ]
+        },
+        wallMtl: {
+          type: "MeshBasic"
+        },
+				setWall: function( elem ) {
+					this.wall = elem;
+				},
+        lightShadow: {
+          mapSize: 1024,
+          left: -d,
+          right: d,
+          top: d,
+          bottom: -d,
+          far: 3 * d,
+          near: d
+        },
+        lightStyle: { pos: [ d, d, d ] },
+        camStyle: { pos: [ 8, 6, 0 ] },
+        planeGeo: {
+          type: "PlaneBuffer",
+          value: [ 20, 10 ]
+        },
+        planeMtl: {
+          type: "MeshLambert",
+          value: { color: "#888", side: 2 }
+        },
+        cylinderGeo: {
+          type: "CylinderBuffer",
+          value: [ .8, .8, .5, 8 ]
+        },
+        cylinderMtl: {
+          type: "MeshPhong",
+          value: { color: "#ff0" }
+        },
+				barGeo: {
+					type: "Box",
+					value: [ .5, .5, 7.5 ]
+				},
+				barMtl: {
+					type: "MeshPhong",
+					value: { color: "#f00" }
+				},
+				bar: null,
+				barAnim: function( elem, isInit ) {
+					if ( isInit ) return;
+					this.bar = elem;
+					S.update( function() {
+						elem.style.rotateY += .01;
+						elem.physicsStyleNeedsUpdate = true;
+					});
+				},
+				handleGeo0: {
+					type: "CylinderBuffer",
+					value: [ .25, .25, .5, 16 ]
+				},
+				handleGeo1: {
+					type: "SphereBuffer",
+					value: [ .75, 64, 64 ]
+				},
+				handleMtl: {
+					type: "MeshPhong",
+					value: { color: "#0f0" }
+				},
+				touchstart: function( e ) {
+					isMoving = true;
+					render();
+					this.wall.setAttribute( "display", true );
+					m.redraw.strategy( "none" );
+				},
+				touchmove: function( e ) {
+					if ( isMoving ) {
+						e.preventDefault();
+
+		        var result = rdr.pickPointByPixel( e.originalEvent.layerX !== undefined ? e.originalEvent.layerX : e.originalEvent.touches[ 0 ].pageX - rdr.canvas.offsetLeft, e.originalEvent.layerY !== undefined ? e.originalEvent.layerY : e.originalEvent.touches[ 0 ].pageY - rdr.canvas.offsetTop, this.wall );
+		        if ( result ) {
+		          this.bar.style.pos = [ Math.max( -9, Math.min( 9, result.point.x ) ), .25, Math.max( -9, Math.min( 9, result.point.z ) ) ];
+		        }
+		      }
+					m.redraw.strategy( "none" );
+				},
+				touchend: function() {
+					if ( isMoving ) {
+		        isMoving = false;
+		        render();
+						this.wall.setAttribute( "display", false );
+		      }
+					m.redraw.strategy( "none" );
+				}
+      };
+    },
+    view: function( ctrl ) {
+
+      return <scene ontouchend={ ctrl.touchend.bind( ctrl ) } ontouchmove={ ctrl.touchmove.bind( ctrl ) } onmouseup={ ctrl.touchend.bind( ctrl ) } onmousemove={ ctrl.touchmove.bind( ctrl ) }>
+        <obj>
+        { Array.apply(null, { length: 100 }).map( ( e, idx )=><mesh class="box" physics={{ mass: 1 }} key={ idx } geo={ idx % 3 === 0 ? ctrl.boxGeo : idx % 3 === 1 ? ctrl.cylinderGeo : ctrl.sphereGeo } mtl={ idx % 3 === 0 ? ctrl.boxMtl : idx % 3 === 1 ? ctrl.cylinderMtl : ctrl.sphereMtl } receiveShadow={true} castShadow={true} style={{ pos: [ Math.random() - 0.5, 2.5 * idx + 3.5, Math.random() - 0.5 ] }}/> )}
+        </obj>
+
+        <mesh geo={ ctrl.floorGeo } mtl={ ctrl.floorMtl } receiveShadow={true} style={{ rotateX: Math.PI / -2 }}/>
+
+				<mesh geo={ ctrl.wallGeo } mtl={ ctrl.wallMtl } display={false} config={ ctrl.setWall.bind( ctrl ) } style={{ posY: 1.5, opacity: 0, rotateX: Math.PI / -2 }}/>
+
+				<mesh geo={ ctrl.barGeo } mtl={ ctrl.barMtl } receiveShadow={true} castShadow={true} physics={{ mass: 0 }} config={ ctrl.barAnim.bind( ctrl ) } style={{ posY: .25 }}>
+					<mesh geo={ ctrl.handleGeo0 } mtl={ ctrl.handleMtl } receiveShadow={true} castShadow={true} physics={{ mass: 0 }} style={{ posY: .5 }}/>
+					<mesh geo={ ctrl.handleGeo1 } mtl={ ctrl.handleMtl }
+						onmousedown={ ctrl.touchstart.bind( ctrl ) } ontouchstart={ ctrl.touchstart.bind( ctrl ) }
+						receiveShadow={true} castShadow={true} physics={{ mass: 0 }} style={{ posY: 1.25 }}/>
+				</mesh>
+        { Array.apply(null, { length: 4 } ).map( ( e, idx )=><obj style={{ rotateY: idx * Math.PI / 2 }}>
+          <mesh geo={ ctrl.planeGeo } mtl={ ctrl.planeMtl } physics={{ mass: 0 }} receiveShadow={true} style={{ pos: [ 0, 5, -10 ] }}/>
+        </obj>)}
+        <cam id="mainCam" style={ctrl.camStyle}/>
+        <light init={{ type: "Dir" }} castShadow={ctrl.lightShadow} style={ctrl.lightStyle}/>
+        <light init={{ type: "Amb", value: [ 0x666666 ] }}/>
+      </scene>;
+    }
+  };
+
+  function setRdr( elem, isInit ) {
+
+    if ( isInit ) return;
+		rdr = elem;
+
+  }
+
+  m.mount( S.document.body, App );
+  function render() {
+  	m.render( S.document.head,
+  		<rdr init={{ frame: "#solufa", antialias: true }} config={ setRdr } enableShadow={true}>
+  			<OrbitVp enabled={ !isMoving } cam="#mainCam" maxPolarAngle={Math.PI/2-.1}/>
+  		</rdr>
+  	);
+  }
+
+  render();
+
+});
+
+</script>
+<style>
+#solufa {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+<div id="solufa"></div>

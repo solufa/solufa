@@ -24,7 +24,7 @@
         "./src/Goml/EventNode.ts",
         "./src/Goml/GomlDoc.ts",
         "./src/Goml/NodeList.ts",
-        "./src/Goml/phisics.ts",
+        "./src/Goml/physics.ts",
         "./src/Goml/RdrNode.ts",
         "./src/Goml/Style.ts",
         "./src/Goml/VpNode.ts",

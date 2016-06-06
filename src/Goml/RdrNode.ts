@@ -137,8 +137,10 @@ export default class extends BaseNode {
   constructor( gomlDoc ) {
     super( "rdr", gomlDoc );
     this.canvasHandler = e => {
-      const offsetX = e.offsetX === undefined ? e.layerX : e.offsetX;
-      const offsetY = e.offsetY === undefined ? e.layerY : e.offsetY;
+      const offsetX = e.offsetX !== undefined ? e.offsetX : e.layerX !== undefined ? e.layerX
+        : e.touches[ 0 ].pageX - this.canvas.offsetLeft;
+      const offsetY = e.offsetY !== undefined ? e.offsetY : e.layerY !== undefined ? e.layerY
+        : e.touches[ 0 ].pageY - this.canvas.offsetTop;
 
       const vps = this.getVpByReverse();
       for ( let i = 0, l = vps.length, vp; i < l; i++ ) {

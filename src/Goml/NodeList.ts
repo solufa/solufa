@@ -5,6 +5,7 @@ import createGeometry from "./createGeometry";
 import { setCoreObject as setObject } from "./adminCoreObject";
 import RdrNode from "./RdrNode";
 import VpNode from "./VpNode";
+import physics from "./physics";
 
 const tmpVec = new THREE.Vector3; // for translate
 
@@ -48,6 +49,16 @@ class GomlNode extends BaseNode {
     default:
       return super.getAttrHook( name );
     }
+  }
+
+  public getScene() {
+    let scene = this;
+
+    while ( scene.tagName !== "scene" ) {
+      scene = scene.parentNode;
+    }
+
+    return scene;
   }
 
   public appendHook( childNode ) {// m.redrawとかでMithrilがtextNodeを生成することがある
@@ -159,7 +170,7 @@ export default {
         break;
       case "helper":
         if ( !this.coreObject ) { break; }
-        this.setHelper( lightType[ this.getAttribute( "type" ) ], value && this.coreObject );
+        this.setHelper( lightType[ this.getAttribute( "init" ).type ], value && this.coreObject );
         if ( this.getAttribute( "castShadow" ) ) {
           this.setHelper( "Camera", value && this.coreObject.shadow.camera );
         }
@@ -224,6 +235,16 @@ export default {
 
   mesh: class extends GomlNode {
 
+    private _physicsStyleNeedsUpdate = false;
+
+    get physicsStyleNeedsUpdate() {
+      return this._physicsStyleNeedsUpdate;
+    }
+    set physicsStyleNeedsUpdate( bool ) {
+      this._physicsStyleNeedsUpdate = bool;
+      if ( bool ) { physics.styleUpdate( this ); }
+    }
+
     public setAttrHook( name: string, value ): void {
       super.setAttrHook( name, value );
       let index;
@@ -248,6 +269,18 @@ export default {
           mtlCorePool.push( this.coreObject.material = createMaterial( value ) );
         }
         break;
+      }
+    }
+
+    public appendedHook() {
+      if ( this.getAttribute( "physics" ) ) {
+        physics.addElement( this, this.getAttribute( "physics" ) );
+      }
+    }
+
+    public removedHook() {
+      if ( this.getAttribute( "physics" ) ) {
+        physics.removeElement( this );
       }
     }
 
@@ -334,6 +367,13 @@ export default {
   },
 
   scene: class extends GomlNode {
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
+
+      if ( name === "physicsWorld" ) {
+        physics.createWorld( this, value );
+      }
+    }
 
     constructor( gomlDoc ) {
       super( "scene", gomlDoc );
