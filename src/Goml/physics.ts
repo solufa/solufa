@@ -272,8 +272,8 @@ function sendData( d ) {
 
     dataList.forEach( checkData );
 
-    if ( delta > 50 ) {
-      delta = 50;
+    if ( delta > .05 ) {
+      delta = .05;
     }
 
     worker.postMessage({
