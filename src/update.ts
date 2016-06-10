@@ -11,11 +11,11 @@ let i;
   pastTime = time;
 
   for ( i = 0; i < updateSList.length; i++ ) {
-    updateSList[ i ]( delta, time );
+    updateSList[ i ]( delta * .001, time * .001 );
   }
 
   for ( i = 0; i < updateGomlList.length; i++ ) {
-    updateGomlList[ i ]( delta, time );
+    updateGomlList[ i ]( delta * .001, time * .001 );
   }
 })( 0 );
 
