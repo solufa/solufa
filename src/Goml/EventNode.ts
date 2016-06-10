@@ -147,6 +147,7 @@ function setEventSetter( key ) {
   "MouseOut",
   "MouseEnter",
   "MouseLeave",
+  "Resize",
 ].forEach( function( key ) {
   setEventSetter( key );
   setEventSetter( key.toLowerCase() );
