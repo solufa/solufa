@@ -53,13 +53,13 @@ S( function( m ) {
 				obj = elem;
 
 				S.update( function( delta, elapsed ) {
-					elem.style.rotateY += delta * .0002;
-					elem.style.rotateX += delta * .0002;
-					elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .0005 ) );
+					elem.style.rotateY += delta * .2;
+					elem.style.rotateX += delta * .2;
+					elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .5 ) );
 
-					elem.childNodes[ 0 ].style.colorR = Math.abs( Math.sin( elapsed * .0005 ) );
-					elem.childNodes[ 0 ].style.colorG = Math.abs( Math.cos( elapsed * .0005 ) );
-					elem.childNodes[ 0 ].style.colorB = 1 - Math.abs( Math.sin( elapsed * .0005 ) );
+					elem.childNodes[ 0 ].style.colorR = Math.abs( Math.sin( elapsed * .5 ) );
+					elem.childNodes[ 0 ].style.colorG = Math.abs( Math.cos( elapsed * .5 ) );
+					elem.childNodes[ 0 ].style.colorB = 1 - Math.abs( Math.sin( elapsed * .5 ) );
 				});
 			}
 		},

@@ -1,4 +1,4 @@
-<script src="../js/Solufa.min.js"></script>
+<script src="../js/Solufa.js"></script>
 <script src="../components/Solufa-OrbitVp.js?0"></script>
 <script src="../js/MSXTransformer.js"></script>
 <script src="../js/Stats.min.js"></script>
@@ -140,6 +140,9 @@ S( function( m ) {
 		        var result = rdr.pickPointByPixel( e.originalEvent.layerX !== undefined ? e.originalEvent.layerX : e.originalEvent.touches[ 0 ].pageX - rdr.canvas.offsetLeft, e.originalEvent.layerY !== undefined ? e.originalEvent.layerY : e.originalEvent.touches[ 0 ].pageY - rdr.canvas.offsetTop, this.wall );
 		        if ( result ) {
 		          this.bar.style.pos = [ Math.max( -9, Math.min( 9, result.point.x ) ), .25, Math.max( -9, Math.min( 9, result.point.z ) ) ];
+							this.bar.physicsStyleNeedsUpdate = true;
+							this.bar.childNodes[ 0 ].physicsStyleNeedsUpdate = true;
+							this.bar.childNodes[ 1 ].physicsStyleNeedsUpdate = true;
 		        }
 		      }
 					m.redraw.strategy( "none" );
