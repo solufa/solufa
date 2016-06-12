@@ -1,6 +1,6 @@
-<script src="Solufa.min.js"></script>
-<script src="../Stats.min.js"></script>
-<script src="Solufa-OrbitVp.js"></script>
+<script src="../../js/Solufa.min.js"></script>
+<script src="../../js/Stats.min.js"></script>
+<script src="../../components/Solufa-OrbitVp.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script>
 S( function( m ) {
@@ -49,20 +49,18 @@ S( function( m ) {
 					}
 				}
 			},
-			first: true,
-			rotate: function( elem ) {
-				if ( App.vm.first ) {
-					App.vm.first = false;
-					S.update( function( delta, elapsed ) {
-						elem.style.rotateY += delta * .0002;
-						elem.style.rotateX += delta * .0002;
-						elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .0005 ) );
+			objStyle: { rotateAxis: [ 1, 1, 0 ] },
+			rotate: function( elem, isInit ) {
+				if ( isInit ) return;
 
-						elem.childNodes[1].childNodes[1].style.colorB = Math.abs( Math.sin( elapsed * .0005 ) );
-						elem.childNodes[1].childNodes[1].style.colorG = Math.abs( Math.cos( elapsed * .0005 ) );
-						elem.childNodes[1].childNodes[1].style.colorR = 1 - Math.abs( Math.sin( elapsed * .0005 ) );
-					});
-				}
+				S.update( function( delta, elapsed ) {
+					elem.style.rotateAngle += delta * .2;
+					elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .5 ) );
+
+					elem.childNodes[1].childNodes[1].style.colorB = Math.abs( Math.sin( elapsed * .5 ) );
+					elem.childNodes[1].childNodes[1].style.colorG = Math.abs( Math.cos( elapsed * .5 ) );
+					elem.childNodes[1].childNodes[1].style.colorR = 1 - Math.abs( Math.sin( elapsed * .5 ) );
+				});
 
 			}
 		},
@@ -72,7 +70,7 @@ S( function( m ) {
     view: function() {
       var vm = App.vm;
       return m( "scene", [
-				m( "obj", { config: vm.rotate }, [
+				m( "obj", { config: vm.rotate, style: vm.objStyle }, [
 					vm.objsPos.map( function( pos ) {
 						return m( "obj", { style: pos }, [
 							vm.meshPoses.map( function( v ) {

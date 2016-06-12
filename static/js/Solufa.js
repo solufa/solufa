@@ -50118,7 +50118,7 @@ function setEventSetter(key) {
         }
     });
 }
-["Click", "DblClick", "ContextMenu", "TouchStart", "TouchMove", "TouchEnd", "TouchCancel", "MouseUp", "MouseDown", "MouseMove", "Load", "MouseWheel", "MouseOver", "MouseOut", "MouseEnter", "MouseLeave"].forEach(function (key) {
+["Click", "DblClick", "ContextMenu", "TouchStart", "TouchMove", "TouchEnd", "TouchCancel", "MouseUp", "MouseDown", "MouseMove", "Load", "MouseWheel", "MouseOver", "MouseOut", "MouseEnter", "MouseLeave", "Resize"].forEach(function (key) {
     setEventSetter(key);
     setEventSetter(key.toLowerCase());
 });
@@ -51095,6 +51095,9 @@ var Style = function () {
         _classCallCheck(this, Style);
 
         this._vec3 = new THREE.Vector3();
+        this._rotateAxis = new THREE.Vector3();
+        this._normalizedRotateAxis = new THREE.Vector3();
+        this._rotateAngle = 0;
         this.target = target;
         this._lookAt = new THREE.Vector3();
         this._opacity = 1;
@@ -51278,6 +51281,51 @@ var Style = function () {
         },
         set: function set(w) {
             this.target.coreObject.quaternion.w = w;
+        }
+    }, {
+        key: "rotateAxis",
+        get: function get() {
+            return toArr(this._rotateAxis);
+        },
+        set: function set(array) {
+            setVec(this._rotateAxis, array);
+            this.target.coreObject.quaternion.setFromAxisAngle(this._normalizedRotateAxis.copy(this._rotateAxis).normalize(), this._rotateAngle);
+        }
+    }, {
+        key: "rotateAxisX",
+        get: function get() {
+            return this._rotateAxis.x;
+        },
+        set: function set(x) {
+            this._rotateAxis.x = x;
+            this.target.coreObject.quaternion.setFromAxisAngle(this._normalizedRotateAxis.copy(this._rotateAxis).normalize(), this._rotateAngle);
+        }
+    }, {
+        key: "rotateAxisY",
+        get: function get() {
+            return this._rotateAxis.y;
+        },
+        set: function set(y) {
+            this._rotateAxis.y = y;
+            this.target.coreObject.quaternion.setFromAxisAngle(this._normalizedRotateAxis.copy(this._rotateAxis).normalize(), this._rotateAngle);
+        }
+    }, {
+        key: "rotateAxisZ",
+        get: function get() {
+            return this._rotateAxis.z;
+        },
+        set: function set(z) {
+            this._rotateAxis.z = z;
+            this.target.coreObject.quaternion.setFromAxisAngle(this._normalizedRotateAxis.copy(this._rotateAxis).normalize(), this._rotateAngle);
+        }
+    }, {
+        key: "rotateAngle",
+        get: function get() {
+            return this._rotateAngle;
+        },
+        set: function set(angle) {
+            this._rotateAngle = angle;
+            this.target.coreObject.quaternion.setFromAxisAngle(this._normalizedRotateAxis, angle);
         }
     }, {
         key: "lookAt",
@@ -51842,7 +51890,7 @@ var workerScript = "!" + function () {
                     target.quaternion.set(param.quaternion.x, param.quaternion.y, param.quaternion.z, param.quaternion.w);
                 });
                 worldList.forEach(function (world, worldIdx) {
-                    world.step(e.data.delta / 1000);
+                    world.step(e.data.delta);
                     world.bodies.forEach(function (body, bodyIdx) {
                         e.data.dataList[worldIdx].positions[3 * bodyIdx] = body.position.x;
                         e.data.dataList[worldIdx].positions[3 * bodyIdx + 1] = body.position.y;
@@ -51958,8 +52006,8 @@ function sendData(d) {
         removedList.forEach(removeFromList);
         var add = addedList.map(addElement);
         dataList.forEach(checkData);
-        if (delta > 50) {
-            delta = 50;
+        if (delta > .05) {
+            delta = .05;
         }
         worker.postMessage({
             add: add,
@@ -52114,7 +52162,7 @@ exports.default = SolufaInit;
 
 var Init_1 = require("./Init");
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Init_1.default("v0.2.0");
+exports.default = Init_1.default("v0.3.0");
 
 },{"./Init":315}],317:[function(require,module,exports){
 "use strict";
@@ -52129,10 +52177,10 @@ var i = void 0;
     delta = time - pastTime;
     pastTime = time;
     for (i = 0; i < updateSList.length; i++) {
-        updateSList[i](delta, time);
+        updateSList[i](delta * .001, time * .001);
     }
     for (i = 0; i < updateGomlList.length; i++) {
-        updateGomlList[i](delta, time);
+        updateGomlList[i](delta * .001, time * .001);
     }
 })(0);
 function updateS(callback, append) {
