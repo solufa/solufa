@@ -2,4 +2,5 @@ static/contract/
 static/angelhack/
 static/experiment/
 node_modules/
+ticker/
 npm-debug.log
