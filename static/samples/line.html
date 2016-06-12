@@ -37,12 +37,12 @@ S( function( m ) {
 					pos.push( Math.random() * 100 - 50, Math.random() * 100 - 50, Math.random() * 100 - 50 );
 				}
 			},
+			objStyle: { rotateAxis: [ 1, 1, 0 ] },
 			rotate: function( elem, isInit ) {
 				if ( isInit ) return;
 
 				S.update( function( delta ) {
-					elem.style.rotateY += delta * .2;
-					elem.style.rotateX += delta * .2;
+					elem.style.rotateAngle += delta * .2;
 				});
 			}
 		},
@@ -53,7 +53,7 @@ S( function( m ) {
       var vm = App.vm;
 
       return <scene>
-				<obj config={vm.rotate}>
+				<obj config={vm.rotate} style={ vm.objStyle }>
 					<line geo={vm.geo} mtl={vm.mtl}/>
 					<points geo={vm.geo} mtl={vm.pMtl}/>
 				</obj>

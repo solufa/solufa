@@ -44,12 +44,12 @@ S( function( m ) {
 					}
 	      }
 			},
+			objStyle: { rotateAxis: [ 1, 1, 0 ] },
 			rotate: function( elem, isInit ) {
 				if ( isInit ) return;
 
 				S.update( function( delta, elapsed ) {
-					elem.style.rotateY += delta * .2;
-					elem.style.rotateX += delta * .2;
+					elem.style.rotateAngle += delta * .2;
 					elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .5 ) );
 
 					elem.childNodes[ 0 ].style.colorR = Math.abs( Math.sin( elapsed * .5 ) );
@@ -65,7 +65,7 @@ S( function( m ) {
       var vm = App.vm;
 
       return <scene>
-				<obj config={vm.rotate}>
+				<obj config={vm.rotate} style={ vm.objStyle }>
         	{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
 				</obj>
 				<cam id="cam" style={{ posZ: 155 }}/>

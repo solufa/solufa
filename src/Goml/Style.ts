@@ -36,6 +36,9 @@ class Style {
   private _lookAt;
   private _opacity;
   private _vec3 = new THREE.Vector3;
+  private _rotateAxis = new THREE.Vector3;
+  private _normalizedRotateAxis = new THREE.Vector3;
+  private _rotateAngle = 0;
 
   get pos() {
     return toArr( this.target.coreObject.position );
@@ -177,6 +180,57 @@ class Style {
   }
   set quatW( w: number ) {
     this.target.coreObject.quaternion.w = w;
+  }
+
+  get rotateAxis() {
+    return toArr( this._rotateAxis );
+  }
+  set rotateAxis( array ) {
+    setVec( this._rotateAxis, array );
+    this.target.coreObject.quaternion.setFromAxisAngle(
+      this._normalizedRotateAxis.copy( this._rotateAxis ).normalize(),
+      this._rotateAngle
+    );
+  }
+  get rotateAxisX(): number {
+    return this._rotateAxis.x;
+  }
+  set rotateAxisX( x: number ) {
+    this._rotateAxis.x = x;
+    this.target.coreObject.quaternion.setFromAxisAngle(
+      this._normalizedRotateAxis.copy( this._rotateAxis ).normalize(),
+      this._rotateAngle
+    );
+  }
+  get rotateAxisY(): number {
+    return this._rotateAxis.y;
+  }
+  set rotateAxisY( y: number ) {
+    this._rotateAxis.y = y;
+    this.target.coreObject.quaternion.setFromAxisAngle(
+      this._normalizedRotateAxis.copy( this._rotateAxis ).normalize(),
+      this._rotateAngle
+    );
+  }
+  get rotateAxisZ(): number {
+    return this._rotateAxis.z;
+  }
+  set rotateAxisZ( z: number ) {
+    this._rotateAxis.z = z;
+    this.target.coreObject.quaternion.setFromAxisAngle(
+      this._normalizedRotateAxis.copy( this._rotateAxis ).normalize(),
+      this._rotateAngle
+    );
+  }
+  get rotateAngle(): number {
+    return this._rotateAngle;
+  }
+  set rotateAngle( angle: number ) {
+    this._rotateAngle = angle;
+    this.target.coreObject.quaternion.setFromAxisAngle(
+      this._normalizedRotateAxis,
+      angle
+    );
   }
 
   get lookAt() {

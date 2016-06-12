@@ -54,20 +54,18 @@ S( function( m ) {
 					}
 				}
 			},
-			first: true,
-			rotate: function( elem ) {
-				if ( App.vm.first ) {
-					App.vm.first = false;
-					S.update( function( delta, elapsed ) {
-						elem.style.rotateY += delta * .2;
-						elem.style.rotateX += delta * .2;
-						elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .5 ) );
+			objStyle: { rotateAxis: [ 1, 1, 0 ] },
+			rotate: function( elem, isInit ) {
+				if ( isInit ) return;
 
-						elem.childNodes[1].childNodes[1].style.colorB = Math.abs( Math.sin( elapsed * .5 ) );
-						elem.childNodes[1].childNodes[1].style.colorG = Math.abs( Math.cos( elapsed * .5 ) );
-						elem.childNodes[1].childNodes[1].style.colorR = 1 - Math.abs( Math.sin( elapsed * .5 ) );
-					});
-				}
+				S.update( function( delta, elapsed ) {
+					elem.style.rotateAngle += delta * .2;
+					elem.style.opacity = .2 + .8 * Math.abs( Math.sin( elapsed * .5 ) );
+
+					elem.childNodes[1].childNodes[1].style.colorB = Math.abs( Math.sin( elapsed * .5 ) );
+					elem.childNodes[1].childNodes[1].style.colorG = Math.abs( Math.cos( elapsed * .5 ) );
+					elem.childNodes[1].childNodes[1].style.colorR = 1 - Math.abs( Math.sin( elapsed * .5 ) );
+				});
 
 			}
 		},
@@ -78,7 +76,7 @@ S( function( m ) {
       var vm = App.vm;
 
       return <scene>
-				<obj config={vm.rotate}>
+				<obj config={vm.rotate} style={ vm.objStyle }>
 					{ vm.objsPos.map( pos => <obj style={ pos }>
 						{ vm.meshPoses.map( v => <mesh geo={vm.geo} mtl={vm.mtl} style={v}/>)}
 					</obj>
