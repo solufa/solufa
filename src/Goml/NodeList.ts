@@ -413,6 +413,11 @@ export default {
   vp: VpNode,
 
   vps: class extends BaseNode {
+
+    public appendHook( childNode ) {
+      childNode.setSize( this.parentNode.canvas.width, this.parentNode.canvas.height );
+    }
+
     constructor( gomlDoc ) {
       super( "vps", gomlDoc );
     }

@@ -20,11 +20,7 @@ export default class extends BaseNode {
 
   public appendHook( child ) {
     if ( child.tagName === "vp" ) {
-      this.resizeEachVp( child );
-    } else {
-      for ( let i = 0, l = child.childNodes.length; i < l; i++ ) {
-        this.resizeEachVp( child.childNodes[ i ] );
-      }
+      child.setSize( this.canvas.width, this.canvas.height );
     }
   }
 
