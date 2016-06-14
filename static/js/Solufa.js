@@ -50843,6 +50843,13 @@ exports.default = {
             return _possibleConstructorReturn(this, Object.getPrototypeOf(vps).call(this, "vps", gomlDoc));
         }
 
+        _createClass(vps, [{
+            key: "appendHook",
+            value: function appendHook(childNode) {
+                childNode.setSize(this.parentNode.canvas.width, this.parentNode.canvas.height);
+            }
+        }]);
+
         return vps;
     }(BaseNode_1.default)
 
@@ -50914,11 +50921,7 @@ var default_1 = function (_BaseNode_1$default) {
         key: "appendHook",
         value: function appendHook(child) {
             if (child.tagName === "vp") {
-                this.resizeEachVp(child);
-            } else {
-                for (var i = 0, l = child.childNodes.length; i < l; i++) {
-                    this.resizeEachVp(child.childNodes[i]);
-                }
+                child.setSize(this.canvas.width, this.canvas.height);
             }
         }
     }, {
@@ -52162,7 +52165,7 @@ exports.default = SolufaInit;
 
 var Init_1 = require("./Init");
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Init_1.default("v0.3.0");
+exports.default = Init_1.default("v0.3.1");
 
 },{"./Init":315}],317:[function(require,module,exports){
 "use strict";
