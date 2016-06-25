@@ -95,7 +95,8 @@ export default class extends BaseNode {
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y ) ) {
-        return vp.pickElementByPixel( x, y );
+        return vp.pickElementByPixel( x - vp.getAttribute( "left" ) * this.canvas.width,
+          y - vp.getAttribute( "bottom" ) * this.canvas.height );
       }
     }
   }
@@ -105,7 +106,8 @@ export default class extends BaseNode {
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y, true ) ) {
-        return vp.pickElementByRatio( x, y );
+        return vp.pickElementByRatio( ( x - vp.getAttribute( "left" ) ) / vp.getAttribute( "width" ),
+          ( y - vp.getAttribute( "bottom" ) ) / vp.getAttribute( "height" ) );
       }
     }
   }
@@ -115,7 +117,8 @@ export default class extends BaseNode {
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y ) ) {
-        return vp.pickPointByPixel( x, y, element );
+        return vp.pickPointByPixel( x - vp.getAttribute( "left" ) * this.canvas.width,
+          y - vp.getAttribute( "bottom" ) * this.canvas.height, element );
       }
     }
   }
@@ -125,7 +128,8 @@ export default class extends BaseNode {
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
       vp = vps[ i ];
       if ( vp._isCollision( x, y, true ) ) {
-        return vp.pickPointByRatio( x, y, element );
+        return vp.pickPointByRatio( ( x - vp.getAttribute( "left" ) ) / vp.getAttribute( "width" ),
+          ( y - vp.getAttribute( "bottom" ) ) / vp.getAttribute( "height" ), element );
       }
     }
   }
