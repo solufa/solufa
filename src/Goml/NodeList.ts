@@ -30,6 +30,9 @@ class GomlNode extends BaseNode {
     case "rotateOrder":
       this.coreObject.rotation.order = value;
       break;
+    case "renderOrder":
+      this.coreObject.renderOrder = value;
+      break;
     case "castShadow":
     case "receiveShadow":
       this.coreObject[ name ] = !!value;
@@ -43,6 +46,8 @@ class GomlNode extends BaseNode {
       return this.coreObject.visible;
     case "rotateOrder":
       return this.coreObject.rotation.order;
+    case "renderOrder":
+      return this.coreObject.renderOrder;
     case "castShadow":
     case "receiveShadow":
       return this.coreObject[ name ];
