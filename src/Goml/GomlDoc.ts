@@ -1,9 +1,9 @@
 import createNode from "./createNode";
 import EventNode from "./EventNode";
 import BaseNode from "./BaseNode";
-import { idArray as idList } from "./adminIdClass";
-import { classArray as classList } from "./adminIdClass";
+import idList from "./adminId";
 import { getGomlElement as getElement } from "./adminCoreObject";
+import getElementsByClassName from "../utils/getElementsByClassName";
 
 class NewEvent {
   public cancelBubble = false;
@@ -91,7 +91,7 @@ class GomlDoc extends EventNode {
   }
 
   public getElementsByClassName( name: string ) {
-    return [].concat( classList[ name ] || [] );
+    return getElementsByClassName( this, name, false );
   }
 
   public getElementByObject( object ) {

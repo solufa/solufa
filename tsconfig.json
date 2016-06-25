@@ -15,7 +15,7 @@
     ],
     "files": [
         "./src/Goml/adminCoreObject.ts",
-        "./src/Goml/adminIdClass.ts",
+        "./src/Goml/adminId.ts",
         "./src/Goml/BaseNode.ts",
         "./src/Goml/createCanvas.ts",
         "./src/Goml/createGeometry.ts",
@@ -36,8 +36,8 @@
         "./src/refs/threejs/three.d.ts",
         "./src/Solufa.ts",
         "./src/update.ts",
-        "./src/utils/_string2Json.ts",
         "./src/utils/errorMessage.ts",
+        "./src/utils/getElementsByClassName.ts",
         "./src/utils/traverse.ts"
     ],
     "exclude": [

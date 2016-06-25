@@ -28,7 +28,6 @@
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^1.5.3",
     "gulp-webserver": "^0.9.1",
-    "json5": "^0.5.0",
     "mithril": "^0.2.3",
     "three": "^0.75.0",
     "tsd": "^0.6.5",

@@ -1,6 +1,7 @@
 import Style from "./Style";
 import EventNode from "./EventNode";
-import { idArray as idList, classArray as classList } from "./adminIdClass"; // Todo: appendとremoveの反映
+import idList from "./adminId";
+import getElementsByClassName from "../utils/getElementsByClassName";
 
 class BaseNode extends EventNode {
 
@@ -28,26 +29,10 @@ class BaseNode extends EventNode {
   }
 
   get className(): string {
-      return this.getAttribute( "class" );
+      return this._className;
   }
   set className( value: string ) {
-    if ( !value ) { return; } // Todo: removeClass
-
-    if ( this._className ) {
-      this._className.split( " " ).forEach( className => {
-        classList[ className ].splice( classList[ className ].indexOf( this ), 1 );
-        if ( !classList[ className ].length ) {
-          delete classList[ className ];
-        }
-      });
-    }
-
     this._className = value;
-    value.split( " " ).forEach( className => {
-      const list = classList[ className ] || [];
-      list.push( this );
-      classList[ className ] = list;
-    });
   }
 
   public setAttrHook( name, value ) { return; }
@@ -80,7 +65,21 @@ class BaseNode extends EventNode {
   }
 
   public getAttribute( name: string ) {
-    return this.getAttrHook( name );
+
+    let value;
+
+    switch ( name ) {
+    case "id":
+      value = this.id;
+      break;
+    case "class":
+      value = this.className;
+      break;
+    default:
+      value = this.getAttrHook( name );
+      break;
+    }
+    return value;
   }
 
   public appendChild( child ): void {
@@ -127,8 +126,7 @@ class BaseNode extends EventNode {
     if ( /^#/.test( selector ) ) {
       return idList[ selector.slice( 1 ) ] || null;
     } else if ( /^\./.test( selector ) ) {
-      let list = classList[ selector.slice( 1 ) ];
-      return list ? list[ 0 ] : null;
+      return getElementsByClassName( this, selector.slice( 1 ), true );
     }
   }
 
@@ -140,10 +138,7 @@ class BaseNode extends EventNode {
         arr.push( elem );
       }
     } else if ( /^\./.test( selector ) ) {
-      let list = classList[ selector.slice( 1 ) ];
-      if ( list ) {
-        Array.prototype.push.apply( arr, list );
-      }
+      Array.prototype.push.apply( arr, getElementsByClassName( this, selector.slice( 1 ), false ) );
     }
     return arr;
   }
