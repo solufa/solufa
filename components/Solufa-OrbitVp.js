@@ -1043,7 +1043,7 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 
 } );
 
-function set( elem ) {
+function set( elem, isInit, ctx ) {
   var ctrl = elem.getAttribute( "ctrl" );
   if ( !ctrl.orbit ) {
 		var cam = elem.ownerDocument.body.querySelector( elem.getAttribute( "cam" ) );
@@ -1055,6 +1055,10 @@ function set( elem ) {
 			ctrl.orbit[ key ] = ctrl[ key ];
 		}
 	}
+
+	ctx.onunload = function() {
+		this.orbit.dispose();
+	}.bind( ctrl );
 }
 
 var Orbit = {
