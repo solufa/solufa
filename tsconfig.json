@@ -31,7 +31,6 @@
         "./src/Init.ts",
         "./src/module1.ts",
         "./src/refs/bundle.ts",
-        "./src/refs/json5/json5.d.ts",
         "./src/refs/mithril/mithril.d.ts",
         "./src/refs/threejs/three.d.ts",
         "./src/Solufa.ts",
