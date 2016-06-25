@@ -204,9 +204,10 @@ let exportData;
 
 function checkData( data, index ) {
 
-  if ( !objectList[ index ].length || objectList[ index ].length !== data.positions.length ) {
-    data.positions = new Float32Array( objectList[ index ].length * 3 );
-    data.quaternions = new Float32Array( objectList[ index ].length * 4 );
+  const objectLength = objectList[ index ].length + 1;
+  if ( objectLength === 1 /*only ground*/ || objectLength !== data.positions.length ) {
+    data.positions = new Float32Array( objectLength * 3 );
+    data.quaternions = new Float32Array( objectLength * 4 );
   }
 
   buffers.push( data.positions.buffer, data.quaternions.buffer );
