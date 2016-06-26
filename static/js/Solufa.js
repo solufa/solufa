@@ -49791,7 +49791,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var Style_1 = require("./Style");
 var EventNode_1 = require("./EventNode");
-var adminIdClass_1 = require("./adminIdClass");
+var adminId_1 = require("./adminId");
+var getElementsByClassName_1 = require("../utils/getElementsByClassName");
 
 var BaseNode = function (_EventNode_1$default) {
     _inherits(BaseNode, _EventNode_1$default);
@@ -49864,7 +49865,19 @@ var BaseNode = function (_EventNode_1$default) {
     }, {
         key: "getAttribute",
         value: function getAttribute(name) {
-            return this.getAttrHook(name);
+            var value = void 0;
+            switch (name) {
+                case "id":
+                    value = this.id;
+                    break;
+                case "class":
+                    value = this.className;
+                    break;
+                default:
+                    value = this.getAttrHook(name);
+                    break;
+            }
+            return value;
         }
     }, {
         key: "appendChild",
@@ -49911,10 +49924,9 @@ var BaseNode = function (_EventNode_1$default) {
         key: "querySelector",
         value: function querySelector(selector) {
             if (/^#/.test(selector)) {
-                return adminIdClass_1.idArray[selector.slice(1)] || null;
+                return adminId_1.default[selector.slice(1)] || null;
             } else if (/^\./.test(selector)) {
-                var list = adminIdClass_1.classArray[selector.slice(1)];
-                return list ? list[0] : null;
+                return getElementsByClassName_1.default(this, selector.slice(1), true);
             }
         }
     }, {
@@ -49922,15 +49934,12 @@ var BaseNode = function (_EventNode_1$default) {
         value: function querySelectorAll(selector) {
             var arr = [];
             if (/^#/.test(selector)) {
-                var elem = adminIdClass_1.idArray[selector.slice(1)];
+                var elem = adminId_1.default[selector.slice(1)];
                 if (elem) {
                     arr.push(elem);
                 }
             } else if (/^\./.test(selector)) {
-                var list = adminIdClass_1.classArray[selector.slice(1)];
-                if (list) {
-                    Array.prototype.push.apply(arr, list);
-                }
+                Array.prototype.push.apply(arr, getElementsByClassName_1.default(this, selector.slice(1), false));
             }
             return arr;
         }
@@ -49941,36 +49950,18 @@ var BaseNode = function (_EventNode_1$default) {
         },
         set: function set(value) {
             if (this._id) {
-                delete adminIdClass_1.idArray[this._id];
+                delete adminId_1.default[this._id];
             }
             this._id = value;
-            adminIdClass_1.idArray[value] = this;
+            adminId_1.default[value] = this;
         }
     }, {
         key: "className",
         get: function get() {
-            return this.getAttribute("class");
+            return this._className;
         },
         set: function set(value) {
-            var _this2 = this;
-
-            if (!value) {
-                return;
-            }
-            if (this._className) {
-                this._className.split(" ").forEach(function (className) {
-                    adminIdClass_1.classArray[className].splice(adminIdClass_1.classArray[className].indexOf(_this2), 1);
-                    if (!adminIdClass_1.classArray[className].length) {
-                        delete adminIdClass_1.classArray[className];
-                    }
-                });
-            }
             this._className = value;
-            value.split(" ").forEach(function (className) {
-                var list = adminIdClass_1.classArray[className] || [];
-                list.push(_this2);
-                adminIdClass_1.classArray[className] = list;
-            });
         }
     }]);
 
@@ -49980,7 +49971,7 @@ var BaseNode = function (_EventNode_1$default) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = BaseNode;
 
-},{"./EventNode":302,"./Style":306,"./adminIdClass":309}],302:[function(require,module,exports){
+},{"../utils/getElementsByClassName":319,"./EventNode":302,"./Style":306,"./adminId":309}],302:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -50139,9 +50130,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var createNode_1 = require("./createNode");
 var EventNode_1 = require("./EventNode");
 var BaseNode_1 = require("./BaseNode");
-var adminIdClass_1 = require("./adminIdClass");
-var adminIdClass_2 = require("./adminIdClass");
+var adminId_1 = require("./adminId");
 var adminCoreObject_1 = require("./adminCoreObject");
+var getElementsByClassName_1 = require("../utils/getElementsByClassName");
 
 var NewEvent = function () {
     function NewEvent(type) {
@@ -50263,12 +50254,12 @@ var GomlDoc = function (_EventNode_1$default) {
     }, {
         key: "getElementById",
         value: function getElementById(id) {
-            return adminIdClass_1.idArray[id] || null;
+            return adminId_1.default[id] || null;
         }
     }, {
         key: "getElementsByClassName",
         value: function getElementsByClassName(name) {
-            return [].concat(adminIdClass_2.classArray[name] || []);
+            return getElementsByClassName_1.default(this, name, false);
         }
     }, {
         key: "getElementByObject",
@@ -50287,7 +50278,7 @@ var GomlDoc = function (_EventNode_1$default) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GomlDoc;
 
-},{"./BaseNode":301,"./EventNode":302,"./adminCoreObject":308,"./adminIdClass":309,"./createNode":313}],304:[function(require,module,exports){
+},{"../utils/getElementsByClassName":319,"./BaseNode":301,"./EventNode":302,"./adminCoreObject":308,"./adminId":309,"./createNode":313}],304:[function(require,module,exports){
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -50331,6 +50322,9 @@ var GomlNode = function (_BaseNode_1$default) {
                 case "rotateOrder":
                     this.coreObject.rotation.order = value;
                     break;
+                case "renderOrder":
+                    this.coreObject.renderOrder = value;
+                    break;
                 case "castShadow":
                 case "receiveShadow":
                     this.coreObject[name] = !!value;
@@ -50345,6 +50339,8 @@ var GomlNode = function (_BaseNode_1$default) {
                     return this.coreObject.visible;
                 case "rotateOrder":
                     return this.coreObject.rotation.order;
+                case "renderOrder":
+                    return this.coreObject.renderOrder;
                 case "castShadow":
                 case "receiveShadow":
                     return this.coreObject[name];
@@ -50985,7 +50981,7 @@ var default_1 = function (_BaseNode_1$default) {
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y)) {
-                    return vp.pickElementByPixel(x, y);
+                    return vp.pickElementByPixel(x - vp.getAttribute("left") * this.canvas.width, y - vp.getAttribute("bottom") * this.canvas.height);
                 }
             }
         }
@@ -50996,7 +50992,7 @@ var default_1 = function (_BaseNode_1$default) {
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y, true)) {
-                    return vp.pickElementByRatio(x, y);
+                    return vp.pickElementByRatio((x - vp.getAttribute("left")) / vp.getAttribute("width"), (y - vp.getAttribute("bottom")) / vp.getAttribute("height"));
                 }
             }
         }
@@ -51007,7 +51003,7 @@ var default_1 = function (_BaseNode_1$default) {
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y)) {
-                    return vp.pickPointByPixel(x, y, element);
+                    return vp.pickPointByPixel(x - vp.getAttribute("left") * this.canvas.width, y - vp.getAttribute("bottom") * this.canvas.height, element);
                 }
             }
         }
@@ -51018,7 +51014,7 @@ var default_1 = function (_BaseNode_1$default) {
             for (var i = 0, l = vps.length, vp; i < l; i++) {
                 vp = vps[i];
                 if (vp._isCollision(x, y, true)) {
-                    return vp.pickPointByRatio(x, y, element);
+                    return vp.pickPointByRatio((x - vp.getAttribute("left")) / vp.getAttribute("width"), (y - vp.getAttribute("bottom")) / vp.getAttribute("height"), element);
                 }
             }
         }
@@ -51447,7 +51443,7 @@ var Style = function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Style;
 
-},{"../utils/traverse":319,"three":300}],307:[function(require,module,exports){
+},{"../utils/traverse":320,"three":300}],307:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -51655,10 +51651,8 @@ exports.setCoreObject = setCoreObject;
 },{}],309:[function(require,module,exports){
 "use strict";
 
-var idArray = {};
-exports.idArray = idArray;
-var classArray = {};
-exports.classArray = classArray;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = {};
 
 },{}],310:[function(require,module,exports){
 "use strict";
@@ -51689,27 +51683,54 @@ exports.default = createCanvas;
 "use strict";
 
 var THREE = require("three");
+var attrsPool = [];
+var attrsCorePool = [];
+var indexAttrsCorePool = [];
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = function (value) {
+    var geometry = void 0;
     if (value.type === "Buffer") {
-        var geometry = new THREE.BufferGeometry();
-        for (var key in value.attrs) {
-            if (key) {
-                geometry.addAttribute(key, new THREE.BufferAttribute(new Float32Array(value.attrs[key]), key === "index" ? 1 : key === "uv" ? 2 : 3));
-            }
-        }
-        return geometry;
+        geometry = new THREE.BufferGeometry();
     } else {
-        var _geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5], value.value[6], value.value[7]);
-        if (value.attrs) {
-            for (var _key in value.attrs) {
-                if (_key) {
-                    _geometry.addAttribute(_key, new THREE.BufferAttribute(new Float32Array(value.attrs[_key]), _key === "index" ? 1 : _key === "uv" ? 2 : 3));
+        geometry = new THREE[value.type + "Geometry"](value.value[0], value.value[1], value.value[2], value.value[3], value.value[4], value.value[5], value.value[6], value.value[7]);
+    }
+    if (value.attrs) {
+        var tmp = value.attrs;
+        var length = tmp.position.length / 3;
+        var index = attrsPool.indexOf(tmp);
+        if (index !== -1) {
+            geometry.attributes = attrsCorePool[index];
+        } else {
+            for (var key in tmp) {
+                if (key === "index") {
+                    geometry.setIndex(Array.isArray(tmp[key]) ? new THREE.Uint16Attribute(tmp[key], 1) : tmp[key]);
+                } else {
+                    geometry.addAttribute(key, Array.isArray(tmp[key]) ? new THREE.Float32Attribute(tmp[key], tmp[key].length / length) : tmp[key]);
                 }
             }
+            attrsPool.push(tmp);
+            attrsCorePool.push(geometry.attributes);
+            indexAttrsCorePool.push(geometry.getIndex());
+            Object.defineProperty(tmp, "needsUpdate", {
+                get: function get() {
+                    return attrsCorePool[attrsPool.indexOf(this)].position.needsUpdate;
+                },
+                set: function set(bool) {
+                    var index = attrsPool.indexOf(this);
+                    for (var _key in this) {
+                        if (_key === "index") {
+                            indexAttrsCorePool[index].array.set(this[_key]);
+                            indexAttrsCorePool[index].needsUpdate = true;
+                        } else {
+                            attrsCorePool[index][_key].array.set(this[_key]);
+                            attrsCorePool[index][_key].needsUpdate = true;
+                        }
+                    }
+                }
+            });
         }
-        return _geometry;
     }
+    return geometry;
 };
 
 },{"three":300}],312:[function(require,module,exports){
@@ -51960,9 +51981,10 @@ var delta = 0;
 var buffers = [];
 var exportData = void 0;
 function checkData(data, index) {
-    if (!objectList[index].length || objectList[index].length !== data.positions.length) {
-        data.positions = new Float32Array(objectList[index].length * 3);
-        data.quaternions = new Float32Array(objectList[index].length * 4);
+    var objectLength = objectList[index].length + 1;
+    if (objectLength === 1 || objectLength !== data.positions.length) {
+        data.positions = new Float32Array(objectLength * 3);
+        data.quaternions = new Float32Array(objectLength * 4);
     }
     buffers.push(data.positions.buffer, data.quaternions.buffer);
 }
@@ -52165,7 +52187,7 @@ exports.default = SolufaInit;
 
 var Init_1 = require("./Init");
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Init_1.default("v0.3.1");
+exports.default = Init_1.default("v0.4.0");
 
 },{"./Init":315}],317:[function(require,module,exports){
 "use strict";
@@ -52220,6 +52242,27 @@ exports.default = default_1;
 ;
 
 },{}],319:[function(require,module,exports){
+"use strict";
+
+function find(elem, array, className, isFirstOnly) {
+    elem.childNodes.forEach(function (child) {
+        if (!isFirstOnly || !array.length) {
+            find(child, array, className, isFirstOnly);
+        }
+    });
+    if ((!isFirstOnly || !array.length) && className === elem.className) {
+        array.push(elem);
+    }
+}
+function default_1(elem, className, isFirstOnly) {
+    var list = [];
+    find(elem, list, className, isFirstOnly);
+    return isFirstOnly ? list[0] || null : list;
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = default_1;
+
+},{}],320:[function(require,module,exports){
 "use strict";
 
 function traverse(element, callback, value) {
