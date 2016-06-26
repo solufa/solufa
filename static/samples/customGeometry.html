@@ -14,9 +14,8 @@ S( function( m ) {
 				geo: {
 					type: "Buffer",
 					attrs: {
-						position: Array.apply( null, { length: 3000 } ).map( function( e, index ) {
-							return Math.random() * 100 - 50;
-						})
+						position: [ -1.0, -1.0, 0, 1.0, -1.0, 0, 1.0,  1.0, 0, -1.0,  1.0, 0],
+						index: [0, 1, 2,2, 3, 0]
 					}
 				},
 				mtl: {
@@ -44,7 +43,7 @@ S( function( m ) {
 					setInterval( function() {
 						var pos = this.geo.attrs.position;
 						for ( var i = 0, n = pos.length; i < n; i++ ) {
-							pos[ i ] = Math.random() * 100 - 50;
+							pos[ i ] *= 1.2;
 						}
 						this.geo.attrs.needsUpdate = true;
 					}.bind( this ), 1000 );
@@ -56,7 +55,7 @@ S( function( m ) {
       return <scene>
 				<obj config={ ctrl.config.bind( ctrl ) } style={ ctrl.objStyle }>
 					<line geo={ ctrl.geo } mtl={ ctrl.mtl }/>
-					<points geo={ ctrl.geo } mtl={ ctrl.pMtl }/>
+					<mesh geo={ ctrl.geo } mtl={ ctrl.pMtl }/>
 				</obj>
 				<cam id="cam" style={{ posZ: 150 }}/>
       </scene>;
