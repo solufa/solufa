@@ -1,1 +1,5 @@
-examples/
+/components/
+/src/
+samples/
+img/
+bench/
