@@ -4,8 +4,6 @@ const babelify = require('babelify');
 const source = require('vinyl-source-stream');
 const watchify = require('watchify');
 const webserver = require('gulp-webserver');
-const uglify = require('gulp-uglify');
-const rename = require('gulp-rename');
 const msx = require('gulp-msx');
 
 const br = watchify(
@@ -40,13 +38,4 @@ gulp.task( "default", function() {
   bundle();
 
   gulp.watch('./components/*.js', ['msx']);
-});
-
-gulp.task('compress', function() {
-  return gulp.src('static/js/Solufa.js')
-    .pipe(uglify({
-      preserveComments: 'some' // ! から始まるコメントを残すオプションを追加
-    }))
-    .pipe(rename('Solufa.min.js'))
-    .pipe(gulp.dest('static/js'));
 });
