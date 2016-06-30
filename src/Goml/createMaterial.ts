@@ -46,11 +46,12 @@ export default ( value ) => {
 
         case "video":
           txr = new THREE.VideoTexture( tmp.src );
-          txr.minFilter = THREE.LinearFilter;
-          txr.magFilter = THREE.LinearFilter;
           txr.format = THREE.RGBFormat;
           break;
         }
+
+        txr.minFilter = THREE.LinearFilter;
+        txr.magFilter = THREE.LinearFilter;
 
         Object.defineProperty( tmp, "needsUpdate", {
             get: function () {
