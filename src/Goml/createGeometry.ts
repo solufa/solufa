@@ -10,6 +10,46 @@ export default ( value ) => {
 
   if ( value.type === "Buffer" ) {
     geometry = new THREE.BufferGeometry;
+  } else if ( value.type === "Custom" ) {
+    geometry = new THREE.Geometry;
+    value.vertices.forEach( function( vec ) {
+      geometry.vertices.push( new THREE.Vector3( vec[ 0 ], vec[ 1 ], vec[ 2 ] ) );
+    });
+
+    if ( value.faceVertexUvs ) {
+      value.faceVertexUvs.forEach( function( faceVertexUv, idx ) {
+        geometry.faceVertexUvs[ idx ] = geometry.faceVertexUvs[ idx ] || [];
+        faceVertexUv.forEach( function( uv ) {
+          geometry.faceVertexUvs[ idx ].push([
+            new THREE.Vector2( uv[ 0 ][ 0 ], uv[ 0 ][ 1 ] ),
+            new THREE.Vector2( uv[ 1 ][ 0 ], uv[ 1 ][ 1 ] ),
+            new THREE.Vector2( uv[ 2 ][ 0 ], uv[ 2 ][ 1 ] ),
+          ]);
+        });
+      });
+    }
+
+    if ( value.faces ) {
+      value.faces.forEach( function( face ) {
+        geometry.faces.push( new THREE.Face3(
+          face[ 0 ],
+          face[ 1 ],
+          face[ 2 ],
+          face[ 3 ] && new THREE.Vector3( face[ 3 ][ 0 ], face[ 3 ][ 1 ], face[ 3 ][ 2 ] ),
+          face[ 4 ] && new THREE.Color( face[ 4 ] ),
+          face[ 5 ]
+        ));
+      });
+
+      if ( !value.faces[ 0 ][ 3 ] ) {
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+      }
+    }
+
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+
   } else {
     geometry = new THREE[ value.type + "Geometry" ](
       value.value[ 0 ],
@@ -61,6 +101,10 @@ export default ( value ) => {
           }
         },
       });
+    }
+
+    if ( !tmp.normal ) {
+      geometry.computeVertexNormals();
     }
 
   }
