@@ -1,7 +1,9 @@
 import * as THREE from "three";
+import * as m from "mithril";
 import BaseNode from "./BaseNode";
 import createMaterial from "./createMaterial";
 import createGeometry from "./createGeometry";
+import errorMessage from "../utils/errorMessage";
 import { setCoreObject as setObject } from "./adminCoreObject";
 import RdrNode from "./RdrNode";
 import VpNode from "./VpNode";
@@ -131,6 +133,9 @@ const geoPool = [];
 const geoCorePool = [];
 const mtlPool = [];
 const mtlCorePool = [];
+const modelPool = [];
+const modelSrcList = [];
+const modelWaiting = [];
 
 export default {
   body: class extends BaseNode {
@@ -292,6 +297,55 @@ export default {
     constructor( gomlDoc ) {
       super( "mesh", gomlDoc );
       this.coreObject = new THREE.Mesh;
+    }
+  },
+
+  model: class extends GomlNode {
+
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
+
+      if ( name === "src" ) {
+        const index = modelSrcList.indexOf( value );
+        if ( index !== -1 ) {
+          if ( modelPool[ index ] === "waiting" ) {
+            modelWaiting[ index ].push( this );
+          } else {
+            m.render( this, modelPool[ index ] );
+          }
+        } else {
+          const srcIndex = modelPool.length;
+          modelSrcList.push( value );
+          modelWaiting[ srcIndex ] = [ this ];
+          modelPool.push( "waiting" );
+
+          const xhr = new XMLHttpRequest;
+          xhr.open( "GET", value );
+          xhr.responseType = "json";
+          xhr.onreadystatechange = function() {
+            if ( xhr.readyState === 4 ) {
+              if ( xhr.status === 200 ) {
+                try {
+                  const json = xhr.response;
+                  modelPool[ srcIndex ] = json;
+                  modelWaiting[ srcIndex ].forEach( function( elem ) {
+                    m.render( elem, json );
+                  });
+                  delete modelWaiting[ srcIndex ];
+                } catch ( e ) {
+                  errorMessage( value + " is not JSON." );
+                }
+              }
+            }
+          };
+          xhr.send( null );
+        }
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "model", gomlDoc );
+      this.coreObject = new THREE.Object3D;
     }
   },
 
