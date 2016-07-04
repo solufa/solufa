@@ -1,7 +1,9 @@
 import { updateS as update } from "../update";
 import * as THREE from "three";
+import generateFullPath from "../utils/generateFullPath";
+import generateWorker from "../utils/generateWorker";
 
-let workerScript = "!" + function() {
+function workerScript() {
   self.onmessage = function( e ) {
     if ( e.data.init ) {
       importScripts( e.data.init );
@@ -129,7 +131,7 @@ let workerScript = "!" + function() {
     }
   }
 
-}.toString() + "();";
+}
 
 let worker;
 const sceneList = [];
@@ -337,10 +339,7 @@ exportData = {
 
   init: function( url, onLoad, onError ) {
 
-    worker = new Worker( window.URL.createObjectURL(
-      new Blob([workerScript], {type: "text/javascript" })
-    ) );
-    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+    worker = generateWorker( workerScript );
     worker.onmessage = function( e ) {
       if ( e.data.isInit === true ) {
         worker.onmessage = onmessage;
@@ -357,18 +356,8 @@ exportData = {
       }
     };
 
-    if ( !/^http/.test( url ) ) {
-      if ( /^\/\//.test( url ) ) {
-        url = location.protocol + url;
-      } else if ( /^\//.test( url ) ) {
-        url = location.origin + url;
-      } else {
-        url = location.href.split( "/" ).slice( 0, -1 ).join( "/" ) + "/" + url;
-      }
-    }
-
     worker.postMessage({
-      init: url,
+      init: generateFullPath( url ),
     });
   },
 

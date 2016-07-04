@@ -22,6 +22,7 @@
         "./src/Goml/createMaterial.ts",
         "./src/Goml/createNode.ts",
         "./src/Goml/EventNode.ts",
+        "./src/Goml/getAsset.ts",
         "./src/Goml/GomlDoc.ts",
         "./src/Goml/NodeList.ts",
         "./src/Goml/physics.ts",
@@ -36,6 +37,8 @@
         "./src/Solufa.ts",
         "./src/update.ts",
         "./src/utils/errorMessage.ts",
+        "./src/utils/generateFullPath.ts",
+        "./src/utils/generateWorker.ts",
         "./src/utils/getElementsByClassName.ts",
         "./src/utils/traverse.ts"
     ],
