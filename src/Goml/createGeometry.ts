@@ -73,10 +73,12 @@ export default ( value ) => {
 
       for ( let key in tmp ) {
         if ( key === "index" ) {
-          geometry.setIndex( Array.isArray( tmp[ key ] ) ? new THREE.Uint16Attribute( tmp[ key ], 1 ) : tmp[ key ] );
+          geometry.setIndex( Array.isArray( tmp[ key ] ) ? new THREE.Uint16Attribute( tmp[ key ], 1 )
+            : new THREE.BufferAttribute( tmp[ key ], 1 ) );
         } else {
           geometry.addAttribute( key, Array.isArray( tmp[ key ] ) ?
-            new THREE.Float32Attribute( tmp[ key ], tmp[ key ].length / length ) : tmp[ key ] );
+            new THREE.Float32Attribute( tmp[ key ], tmp[ key ].length / length )
+              : new THREE.BufferAttribute( tmp[ key ], tmp[ key ].length / length ) );
         }
       }
 

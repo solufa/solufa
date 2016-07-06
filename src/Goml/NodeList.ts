@@ -8,6 +8,7 @@ import { setCoreObject as setObject } from "./adminCoreObject";
 import RdrNode from "./RdrNode";
 import VpNode from "./VpNode";
 import physics from "./physics";
+import getAsset from "./getAsset";
 
 const tmpVec = new THREE.Vector3; // for translate
 
@@ -133,11 +134,66 @@ const geoPool = [];
 const geoCorePool = [];
 const mtlPool = [];
 const mtlCorePool = [];
-const modelPool = [];
-const modelSrcList = [];
-const modelWaiting = [];
+
+const assetPool = [];
+const assetSrcList = [];
+const assetWaiting = [];
 
 export default {
+
+  asset: class extends GomlNode {
+
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
+
+      if ( name === "src" ) {
+        if ( !/\//.test( value ) ) {
+          errorMessage( "src attribute of asset must be full, absolute or relative path." );
+          return;
+        }
+
+        const index = assetSrcList.indexOf( value );
+        if ( index !== -1 ) {
+          if ( assetPool[ index ] === "waiting" ) {
+            assetWaiting[ index ].push( this );
+          } else {
+            m.render( this, assetPool[ index ] );
+          }
+        } else {
+          const srcIndex = assetPool.length;
+          assetSrcList.push( value );
+          assetWaiting[ srcIndex ] = [ this ];
+          assetPool.push( "waiting" );
+
+          if ( !srcIndex ) {
+            getAsset.init( function( e ) {
+              if ( e.status === "error" ) {
+                errorMessage( e.data );
+              } else {
+                if ( e.status === "mesh" ) {
+                  assetWaiting[ e.index ].forEach( function( elem ) {
+                    m.render( elem, e.data );
+                  });
+                } else if ( e.status === "final" ) {
+                  assetPool[ e.index ] = e.data;
+                  assetWaiting[ e.index ] = null;
+                }
+              }
+            });
+          }
+
+          getAsset.add( value, srcIndex );
+
+        }
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "asset", gomlDoc );
+      this.coreObject = new THREE.Object3D;
+    }
+  },
+
   body: class extends BaseNode {
     constructor( gomlDoc ) {
       super( "body", gomlDoc );
@@ -158,6 +214,14 @@ export default {
     constructor( gomlDoc ) {
       super( "cam", gomlDoc );
       this.coreObject = new THREE.PerspectiveCamera;
+    }
+  },
+
+  data: class extends GomlNode {
+
+    constructor( gomlDoc ) {
+      super( "data", gomlDoc );
+      this.coreObject = new THREE.Object3D;
     }
   },
 
@@ -297,55 +361,6 @@ export default {
     constructor( gomlDoc ) {
       super( "mesh", gomlDoc );
       this.coreObject = new THREE.Mesh;
-    }
-  },
-
-  model: class extends GomlNode {
-
-    public setAttrHook( name: string, value ): void {
-      super.setAttrHook( name, value );
-
-      if ( name === "src" ) {
-        const index = modelSrcList.indexOf( value );
-        if ( index !== -1 ) {
-          if ( modelPool[ index ] === "waiting" ) {
-            modelWaiting[ index ].push( this );
-          } else {
-            m.render( this, modelPool[ index ] );
-          }
-        } else {
-          const srcIndex = modelPool.length;
-          modelSrcList.push( value );
-          modelWaiting[ srcIndex ] = [ this ];
-          modelPool.push( "waiting" );
-
-          const xhr = new XMLHttpRequest;
-          xhr.open( "GET", value );
-          xhr.responseType = "json";
-          xhr.onreadystatechange = function() {
-            if ( xhr.readyState === 4 ) {
-              if ( xhr.status === 200 ) {
-                try {
-                  const json = xhr.response;
-                  modelPool[ srcIndex ] = json;
-                  modelWaiting[ srcIndex ].forEach( function( elem ) {
-                    m.render( elem, json );
-                  });
-                  delete modelWaiting[ srcIndex ];
-                } catch ( e ) {
-                  errorMessage( value + " is not JSON." );
-                }
-              }
-            }
-          };
-          xhr.send( null );
-        }
-      }
-    }
-
-    constructor( gomlDoc ) {
-      super( "model", gomlDoc );
-      this.coreObject = new THREE.Object3D;
     }
   },
 
