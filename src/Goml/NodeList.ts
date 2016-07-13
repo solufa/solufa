@@ -139,6 +139,23 @@ const assetPool = [];
 const assetSrcList = [];
 const assetWaiting = [];
 
+function loadedAsset( e ) {
+  if ( e.status === "error" ) {
+    errorMessage( e.data );
+  } else {
+    const index = assetSrcList.indexOf( e.url );
+    assetWaiting[ index ].forEach( function( elem ) {
+      m.render( elem, e.data );
+    });
+
+    if ( e.type === "geo" ) {
+      console.timeEnd( "AssetLoader" );
+      assetPool[ index ] = e.data;
+      assetWaiting[ index ] = null;
+    }
+  }
+}
+
 export default {
 
   asset: class extends GomlNode {
@@ -165,24 +182,7 @@ export default {
           assetWaiting[ srcIndex ] = [ this ];
           assetPool.push( "waiting" );
 
-          if ( !srcIndex ) {
-            getAsset.init( function( e ) {
-              if ( e.status === "error" ) {
-                errorMessage( e.data );
-              } else {
-                if ( e.status === "mesh" ) {
-                  assetWaiting[ e.index ].forEach( function( elem ) {
-                    m.render( elem, e.data );
-                  });
-                } else if ( e.status === "final" ) {
-                  assetPool[ e.index ] = e.data;
-                  assetWaiting[ e.index ] = null;
-                }
-              }
-            });
-          }
-
-          getAsset.add( value, srcIndex );
+          getAsset( value, loadedAsset );
 
         }
       }
@@ -214,14 +214,6 @@ export default {
     constructor( gomlDoc ) {
       super( "cam", gomlDoc );
       this.coreObject = new THREE.PerspectiveCamera;
-    }
-  },
-
-  data: class extends GomlNode {
-
-    constructor( gomlDoc ) {
-      super( "data", gomlDoc );
-      this.coreObject = new THREE.Object3D;
     }
   },
 
@@ -361,6 +353,58 @@ export default {
     constructor( gomlDoc ) {
       super( "mesh", gomlDoc );
       this.coreObject = new THREE.Mesh;
+    }
+  },
+
+  meshes: class extends GomlNode {
+
+    public setAttrHook( name: string, value ): void {
+      super.setAttrHook( name, value );
+      let n = 0;
+      let mesh;
+
+      switch ( name ) {
+      case "geos":
+        let mtls = this.getAttribute( "mtls" );
+        if ( !Array.isArray( value ) || !mtls ) {
+          return;
+        }
+
+        while ( n < value.length ) {
+          mesh = this.ownerDocument.createElement( "mesh" );
+          mesh.setAttribute( "geo", value[ n ] );
+          mesh.setAttribute( "mtl", mtls[ n ] );
+          this.appendChild( mesh );
+          n = n + 1;
+        }
+        break;
+
+      case "mtls":
+        let index;
+        let geos = this.getAttribute( "geos" );
+
+        while ( n < value.length ) {
+          index = mtlPool.indexOf( value[ n ] );
+          if ( index === -1 ) {
+            mtlPool.push( value[ n ] );
+            mtlCorePool.push( createMaterial( value[ n ] ) );
+          }
+
+          if ( Array.isArray( geos ) && !this.childNodes.length ) {
+            mesh = this.ownerDocument.createElement( "mesh" );
+            mesh.setAttribute( "geo", geos[ n ] );
+            mesh.setAttribute( "mtl", value[ n ] );
+            this.appendChild( mesh );
+          }
+          n = n + 1;
+        }
+        break;
+      }
+    }
+
+    constructor( gomlDoc ) {
+      super( "meshes", gomlDoc );
+      this.coreObject = new THREE.Object3D;
     }
   },
 

@@ -40,6 +40,7 @@
         "./src/utils/generateFullPath.ts",
         "./src/utils/generateWorker.ts",
         "./src/utils/getElementsByClassName.ts",
+        "./src/utils/getJson.ts",
         "./src/utils/traverse.ts"
     ],
     "exclude": [
