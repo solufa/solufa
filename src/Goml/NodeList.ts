@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import * as m from "mithril";
 import BaseNode from "./BaseNode";
 import createMaterial from "./createMaterial";
 import createGeometry from "./createGeometry";
@@ -130,35 +129,6 @@ for ( let key in THREE ) {
   }
 }
 
-const assetPool = [];
-const assetSrcList = [];
-const assetWaiting = [];
-
-let loadEventObject;
-
-function loadedAsset( e ) {
-  if ( e.status === "error" ) {
-    errorMessage( e.data );
-  } else {
-    const index = assetSrcList.indexOf( e.url );
-    assetWaiting[ index ].forEach( function( elem ) {
-
-      if ( e.type === "geo" ) {
-        elem.childNodes[ 0 ].setAttribute( "geos", e.data.attrs.geos );
-        elem.dispatchEvent( loadEventObject );
-      } else {
-        m.render( elem, e.data );
-      }
-    });
-
-    assetPool[ index ] = e.data;
-
-    if ( e.type === "geo" ) {
-      // console.timeEnd( "AssetLoader" );
-      assetWaiting[ index ] = null;
-    }
-  }
-}
 
 export default {
 
@@ -170,25 +140,8 @@ export default {
       if ( name === "src" ) {
         if ( !/\//.test( value ) ) {
           errorMessage( "src attribute of asset must be full, absolute or relative path." );
-          return;
-        }
-
-        const index = assetSrcList.indexOf( value );
-        if ( index !== -1 ) {
-          if ( assetWaiting[ index ] ) {
-            assetWaiting[ index ].push( this );
-          }
-
-          if ( assetPool[ index ] ) {
-            m.render( this, assetPool[ index ] );
-          }
         } else {
-          const srcIndex = assetPool.length;
-          assetSrcList.push( value );
-          assetWaiting[ srcIndex ] = [ this ];
-
-          getAsset( value, loadedAsset.bind( this ) );
-
+          getAsset( this, value );
         }
       }
     }
@@ -196,10 +149,6 @@ export default {
     constructor( gomlDoc ) {
       super( "asset", gomlDoc );
       this.coreObject = new THREE.Object3D;
-      if ( !loadEventObject ) {
-        loadEventObject = this.ownerDocument.createEvent( "UIEvents" );
-        loadEventObject.initUIEvent( "load" );
-      }
     }
   },
 
@@ -344,7 +293,6 @@ export default {
     public setAttrHook( name: string, value ): void {
       super.setAttrHook( name, value );
       let n = 0;
-      let mesh;
 
       switch ( name ) {
       case "geos":
@@ -354,10 +302,7 @@ export default {
         }
 
         while ( n < value.length ) {
-          mesh = this.ownerDocument.createElement( "mesh" );
-          mesh.setAttribute( "geo", value[ n ] );
-          mesh.setAttribute( "mtl", mtls[ n ] );
-          this.appendChild( mesh );
+          this.coreObject.add( new THREE.Mesh( createGeometry( value[ n ] ), createMaterial( mtls[ n ] ) ) );
           n = n + 1;
         }
         break;
@@ -369,10 +314,7 @@ export default {
           createMaterial( value[ n ] ); // txrをロードしておく
 
           if ( Array.isArray( geos ) && !this.childNodes.length ) {
-            mesh = this.ownerDocument.createElement( "mesh" );
-            mesh.setAttribute( "geo", geos[ n ] );
-            mesh.setAttribute( "mtl", value[ n ] );
-            this.appendChild( mesh );
+            this.coreObject.add( new THREE.Mesh( createGeometry( geos[ n ] ), createMaterial( value[ n ] ) ) );
           }
           n = n + 1;
         }

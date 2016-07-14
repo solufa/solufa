@@ -143,35 +143,102 @@ function generateElement( elems, mtlArr ) {
   return elem;
 }
 
-export default function( url, callback ) {
 
-  getJson( generateFullPath( url ), function( json, url1 ) {
-    const path = url1.split( "/" ).slice( 0, -1 ).join( "/" ) + "/";
-    const viewData = generateElement( json.main.view, json.main.mtls );
+const assetPool = [];
+const assetSrcList = [];
+const assetWaiting = [];
 
-    json.main.mtls.forEach( function( mtl ) {
-      if ( mtl.value.map ) {
-        mtl.value.map.src = path + mtl.value.map.src;
-      }
-    });
+let loadEventObject;
 
-    callback({
-      data: viewData,
-      type: "view",
-      url,
-    });
+function loadedAsset( e ) {
+  const index = assetSrcList.indexOf( e.url );
+  assetWaiting[ index ].forEach( function( elem ) {
 
-    json.main.geos.forEach( function( geoUrl, i ) {
-      getJson( path + geoUrl, function( geo ) {
-        console.time( "AssetLoader" );
-        callback({
-          data: replaceGeo( viewData, generateGeo( geo ), i ),
-          type: "geo",
-          url,
-        });
-
-      });
-    });
-
+    if ( e.type === "geo" ) {
+      elem.childNodes[ 0 ].setAttribute( "geos", e.data.attrs.geos );
+      elem.dispatchEvent( loadEventObject );
+      // console.timeEnd( "AssetLoader" );
+    } else {
+      elem.appendChild( mRender( elem, e.data ) );
+    }
   });
+
+  assetPool[ index ] = e.data;
+
+  if ( e.type === "geo" ) {
+    assetWaiting[ index ] = null;
+  }
+}
+
+function mRender( elem, view ) {
+  const newElem = elem.ownerDocument.createElement( view.tag );
+  if ( view.children ) {
+    const child = view.children.map( function( childData ) {
+      return mRender( newElem, childData );
+    });
+    newElem.appendChild( child );
+  }
+  for ( let key in view.attrs ) {
+    if ( view.attrs.hasOwnProperty( key ) ) {
+      newElem.setAttribute( key, view.attrs[ key ] );
+    }
+  }
+
+  return newElem;
+}
+
+export default function( elem, url ) {
+
+  const index = assetSrcList.indexOf( url );
+  if ( index !== -1 ) {
+    if ( assetWaiting[ index ] ) {
+      assetWaiting[ index ].push( elem );
+    }
+
+    if ( assetPool[ index ] ) {
+      elem.appendChild( mRender( elem, assetPool[ index ] ) );
+    }
+  } else {
+
+    if ( !loadEventObject ) {
+      loadEventObject = elem.ownerDocument.createEvent( "UIEvents" );
+      loadEventObject.initUIEvent( "load" );
+    }
+
+    const srcIndex = assetPool.length;
+    assetSrcList.push( url );
+    assetWaiting[ srcIndex ] = [ elem ];
+
+    getJson( generateFullPath( url ), function( json, url1 ) {
+      const path = url1.split( "/" ).slice( 0, -1 ).join( "/" ) + "/";
+      const viewData = generateElement( json.main.view, json.main.mtls );
+
+      json.main.mtls.forEach( function( mtl ) {
+        if ( mtl.value.map ) {
+          mtl.value.map.src = path + mtl.value.map.src;
+        }
+      });
+
+      loadedAsset({
+        data: viewData,
+        type: "view",
+        url,
+      });
+
+      json.main.geos.forEach( function( geoUrl, i ) {
+        getJson( path + geoUrl, function( geo ) {
+          // console.time( "AssetLoader" );
+          loadedAsset({
+            data: replaceGeo( viewData, generateGeo( geo ), i ),
+            type: "geo",
+            url,
+          });
+
+        });
+      });
+
+    });
+
+  }
+
 };
