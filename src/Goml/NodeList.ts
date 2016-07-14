@@ -130,9 +130,6 @@ for ( let key in THREE ) {
   }
 }
 
-const geoPool = [];
-const geoCorePool = [];
-
 const assetPool = [];
 const assetSrcList = [];
 const assetWaiting = [];
@@ -283,13 +280,7 @@ export default {
 
       switch ( name ) {
       case "geo":
-        let index = geoPool.indexOf( value );
-        if ( index !== -1 ) {
-          this.coreObject.geometry = geoCorePool[ index ];
-        } else {
-          geoPool.push( value );
-          geoCorePool.push( this.coreObject.geometry = createGeometry( value ) );
-        }
+        this.coreObject.geometry = createGeometry( value );
         break;
 
       case "mtl":
@@ -321,13 +312,7 @@ export default {
 
       switch ( name ) {
       case "geo":
-        let index = geoPool.indexOf( value );
-        if ( index !== -1 ) {
-          this.coreObject.geometry = geoCorePool[ index ];
-        } else {
-          geoPool.push( value );
-          geoCorePool.push( this.coreObject.geometry = createGeometry( value ) );
-        }
+        this.coreObject.geometry = createGeometry( value );
         break;
 
       case "mtl":
@@ -441,13 +426,7 @@ export default {
 
       switch ( name ) {
       case "geo":
-        let index = geoPool.indexOf( value );
-        if ( index !== -1 ) {
-          this.coreObject.geometry = geoCorePool[ index ];
-        } else {
-          geoPool.push( value );
-          geoCorePool.push( this.coreObject.geometry = createGeometry( value ) );
-        }
+        this.coreObject.geometry = createGeometry( value );
         break;
 
       case "mtl":
