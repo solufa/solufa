@@ -132,6 +132,7 @@ var JyroSync = {
   },
   view: function( ctrl, attrs, child ) {
     ctrl.enabled = attrs.enabled !== false;
+		// <obj id={attrs.id} class={attrs.class} ctrl={ctrl} config={jyro}>{child}</obj>
     return {tag: "obj", attrs: {id:attrs.id, class:attrs.class, ctrl:ctrl, config:jyro}, children: [child]};
   }
 };

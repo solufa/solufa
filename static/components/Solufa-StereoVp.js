@@ -98,8 +98,12 @@
       ctrl.separation = attrs.separation;
       ctrl.onchange = ( attrs.onchange || function(){} ).bind( window );
 
+      // <vps ctrl={ctrl} config={load}>
+      //   <vp cam={"#stereoLeftCam" + ctrl.id}/>
+      //   <vp cam={"#stereoRightCam" + ctrl.id}/>
+      // </vps>
       return {tag: "vps", attrs: {ctrl:ctrl, config:load}, children: [
-        {tag: "vp", attrs: {cam:"#stereoLeftCam" + ctrl.id}}, 
+        {tag: "vp", attrs: {cam:"#stereoLeftCam" + ctrl.id}},
         {tag: "vp", attrs: {cam:"#stereoRightCam" + ctrl.id}}
       ]};
     }

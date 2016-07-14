@@ -1073,6 +1073,7 @@ var Orbit = {
 				ctrl[ key ] = attrs[ key ];
 			}
 		}
+		// <vp cam={attrs.cam} ctrl={ctrl} config={set} width={attrs.width || 1 } height={attrs.height || 1 } bottom={attrs.bottom || 0 } left={attrs.left || 0}/>
     return {tag: "vp", attrs: {cam:attrs.cam, ctrl:ctrl, config:set, width:attrs.width || 1, height:attrs.height || 1, bottom:attrs.bottom || 0, left:attrs.left || 0}};
   }
 };

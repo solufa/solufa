@@ -4,7 +4,6 @@ const babelify = require('babelify');
 const source = require('vinyl-source-stream');
 const watchify = require('watchify');
 const webserver = require('gulp-webserver');
-const msx = require('gulp-msx');
 
 const br = watchify(
   browserify({
@@ -22,12 +21,6 @@ function bundle() {
   .pipe(gulp.dest('./static/js'));
 }
 
-gulp.task( "msx", function() {
-  gulp.src('./components/*.js')
-  .pipe(msx({harmony: true}))
-  .pipe(gulp.dest('./static/components'));
-});
-
 gulp.task( "default", function() {
   gulp.src('./static')
     .pipe(webserver({
@@ -36,6 +29,4 @@ gulp.task( "default", function() {
       open: "http://0.0.0.0:8000/samples/1000box.html"
     }));
   bundle();
-
-  gulp.watch('./components/*.js', ['msx']);
 });

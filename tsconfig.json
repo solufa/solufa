@@ -30,7 +30,6 @@
         "./src/Goml/Style.ts",
         "./src/Goml/VpNode.ts",
         "./src/Init.ts",
-        "./src/module1.ts",
         "./src/refs/bundle.ts",
         "./src/refs/mithril/mithril.d.ts",
         "./src/refs/threejs/three.d.ts",
