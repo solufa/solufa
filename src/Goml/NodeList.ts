@@ -132,12 +132,12 @@ for ( let key in THREE ) {
 
 const geoPool = [];
 const geoCorePool = [];
-const mtlPool = [];
-const mtlCorePool = [];
 
 const assetPool = [];
 const assetSrcList = [];
 const assetWaiting = [];
+
+let loadEventObject;
 
 function loadedAsset( e ) {
   if ( e.status === "error" ) {
@@ -145,12 +145,19 @@ function loadedAsset( e ) {
   } else {
     const index = assetSrcList.indexOf( e.url );
     assetWaiting[ index ].forEach( function( elem ) {
-      m.render( elem, e.data );
+
+      if ( e.type === "geo" ) {
+        elem.childNodes[ 0 ].setAttribute( "geos", e.data.attrs.geos );
+        elem.dispatchEvent( loadEventObject );
+      } else {
+        m.render( elem, e.data );
+      }
     });
 
+    assetPool[ index ] = e.data;
+
     if ( e.type === "geo" ) {
-      console.timeEnd( "AssetLoader" );
-      assetPool[ index ] = e.data;
+      // console.timeEnd( "AssetLoader" );
       assetWaiting[ index ] = null;
     }
   }
@@ -171,18 +178,19 @@ export default {
 
         const index = assetSrcList.indexOf( value );
         if ( index !== -1 ) {
-          if ( assetPool[ index ] === "waiting" ) {
+          if ( assetWaiting[ index ] ) {
             assetWaiting[ index ].push( this );
-          } else {
+          }
+
+          if ( assetPool[ index ] ) {
             m.render( this, assetPool[ index ] );
           }
         } else {
           const srcIndex = assetPool.length;
           assetSrcList.push( value );
           assetWaiting[ srcIndex ] = [ this ];
-          assetPool.push( "waiting" );
 
-          getAsset( value, loadedAsset );
+          getAsset( value, loadedAsset.bind( this ) );
 
         }
       }
@@ -191,6 +199,10 @@ export default {
     constructor( gomlDoc ) {
       super( "asset", gomlDoc );
       this.coreObject = new THREE.Object3D;
+      if ( !loadEventObject ) {
+        loadEventObject = this.ownerDocument.createEvent( "UIEvents" );
+        loadEventObject.initUIEvent( "load" );
+      }
     }
   },
 
@@ -268,11 +280,10 @@ export default {
 
     public setAttrHook( name: string, value ): void {
       super.setAttrHook( name, value );
-      let index;
 
       switch ( name ) {
       case "geo":
-        index = geoPool.indexOf( value );
+        let index = geoPool.indexOf( value );
         if ( index !== -1 ) {
           this.coreObject.geometry = geoCorePool[ index ];
         } else {
@@ -282,13 +293,7 @@ export default {
         break;
 
       case "mtl":
-        index = mtlPool.indexOf( value );
-        if ( index !== -1 ) {
-          this.coreObject.material = mtlCorePool[ index ];
-        } else {
-          mtlPool.push( value );
-          mtlCorePool.push( this.coreObject.material = createMaterial( value ) );
-        }
+        this.coreObject.material = createMaterial( value );
         break;
       }
     }
@@ -313,11 +318,10 @@ export default {
 
     public setAttrHook( name: string, value ): void {
       super.setAttrHook( name, value );
-      let index;
 
       switch ( name ) {
       case "geo":
-        index = geoPool.indexOf( value );
+        let index = geoPool.indexOf( value );
         if ( index !== -1 ) {
           this.coreObject.geometry = geoCorePool[ index ];
         } else {
@@ -327,13 +331,7 @@ export default {
         break;
 
       case "mtl":
-        index = mtlPool.indexOf( value );
-        if ( index !== -1 ) {
-          this.coreObject.material = mtlCorePool[ index ];
-        } else {
-          mtlPool.push( value );
-          mtlCorePool.push( this.coreObject.material = createMaterial( value ) );
-        }
+        this.coreObject.material = createMaterial( value );
         break;
       }
     }
@@ -380,15 +378,10 @@ export default {
         break;
 
       case "mtls":
-        let index;
         let geos = this.getAttribute( "geos" );
 
         while ( n < value.length ) {
-          index = mtlPool.indexOf( value[ n ] );
-          if ( index === -1 ) {
-            mtlPool.push( value[ n ] );
-            mtlCorePool.push( createMaterial( value[ n ] ) );
-          }
+          createMaterial( value[ n ] ); // txrをロードしておく
 
           if ( Array.isArray( geos ) && !this.childNodes.length ) {
             mesh = this.ownerDocument.createElement( "mesh" );
@@ -445,11 +438,10 @@ export default {
 
     public setAttrHook( name: string, value ): void {
       super.setAttrHook( name, value );
-      let index;
 
       switch ( name ) {
       case "geo":
-        index = geoPool.indexOf( value );
+        let index = geoPool.indexOf( value );
         if ( index !== -1 ) {
           this.coreObject.geometry = geoCorePool[ index ];
         } else {
@@ -459,13 +451,7 @@ export default {
         break;
 
       case "mtl":
-        index = mtlPool.indexOf( value );
-        if ( index !== -1 ) {
-          this.coreObject.material = mtlCorePool[ index ];
-        } else {
-          mtlPool.push( value );
-          mtlCorePool.push( this.coreObject.material = createMaterial( value ) );
-        }
+        this.coreObject.material = createMaterial( value );
         break;
       }
     }
@@ -512,12 +498,7 @@ export default {
 
       switch ( name ) {
       case "mtl":
-        if ( value.cacheId !== undefined ) {
-          this.coreObject.material = mtlPool[ value.cacheId ];
-        } else {
-          value.cacheId = mtlPool.length;
-          mtlPool.push( this.coreObject.material = createMaterial( value ) );
-        }
+        this.coreObject.material = createMaterial( value );
         break;
       }
     }
