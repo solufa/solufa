@@ -80,6 +80,10 @@ export default function( value ) {
       } else {
 
         for ( let key in tmp ) {
+          if ( key === "needsUpdate" ) {
+            continue;
+          }
+
           if ( key === "index" ) {
             geometry.setIndex( Array.isArray( tmp[ key ] ) ? new THREE.Uint16Attribute( tmp[ key ], 1 )
               : new THREE.BufferAttribute( tmp[ key ], 1 ) );
@@ -101,6 +105,10 @@ export default function( value ) {
           set: function ( bool ) {
             let index = attrsPool.indexOf( this );
             for ( let key in this ) {
+              if ( key === "needsUpdate" ) {
+                continue;
+              }
+
               if ( key === "index" ) {
                 indexAttrsCorePool[ index ].array.set( this[ key ] );
                 indexAttrsCorePool[ index ].needsUpdate = true;
