@@ -1051,7 +1051,9 @@ function set( elem, isInit, ctx ) {
 	}
 
 	for ( var key in ctrl ) {
-		if ( key !== "orbit" ) {
+		if ( key === "onupdate" ) {
+			ctrl.orbit.addEventListener( "change", ctrl[ key ] );
+		} else if ( key !== "orbit" ) {
 			ctrl.orbit[ key ] = ctrl[ key ];
 		}
 	}
