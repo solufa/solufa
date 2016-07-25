@@ -67,6 +67,10 @@ export default class extends BaseNode {
     case "enableShadow":
       this.coreObject.shadowMap.enabled = value;
       break;
+    case "gamma":
+      this.coreObject.gammaInput = value;
+      this.coreObject.gammaOutput = value;
+      break;
     }
   }
 

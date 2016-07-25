@@ -17,8 +17,12 @@ export default function( value ) {
     const param = Object.assign( {}, value.value );
 
     for ( let key in value.value ) {
-      if ( /(map|Map)$/.test( key ) ) {
-        let tmp = value.value[ key ];
+      if ( !key ) { // todo: hasOwn...
+        continue;
+      }
+
+      let tmp = value.value[ key ];
+      if ( typeof tmp === "object" ) {
         let txr;
         let index = txrPool.indexOf( tmp );
 
@@ -56,6 +60,10 @@ export default function( value ) {
           case "video":
             txr = new THREE.VideoTexture( tmp.src );
             txr.format = THREE.RGBFormat;
+            break;
+
+          case "cube":
+            txr = new THREE.CubeTextureLoader().load( tmp.src );
             break;
           }
 
