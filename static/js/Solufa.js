@@ -50965,11 +50965,22 @@ var default_1 = function (_BaseNode_1$default) {
                     frame.appendChild(canvasData.container);
                     this.canvas = value.canvas = canvasData.canvas;
                     window.frames[window.frames.length - 1].addEventListener("resize", this.resize.bind(this), false);
+                    if (value.hidpi) {
+                        var ratio = 2 || window.devicePixelRatio;
+                        var scaleText = "scale(" + 1 / ratio + ") translate(" + 50 * (1 - ratio) + "%," + 50 * (1 - ratio) + "%)";
+                        canvasData.container.style.width = ratio + "00%";
+                        canvasData.container.style.height = ratio + "00%";
+                        canvasData.container.style.transform = scaleText;
+                        canvasData.container.style.webkitTransform = scaleText;
+                    } else {
+                        canvasData.container.style.width = "100%";
+                        canvasData.container.style.height = "100%";
+                    }
                     this.coreObject = new THREE.WebGLRenderer(value);
                     this.coreObject.autoClear = false;
                     this.updateFn = this.render.bind(this);
                     update_1.updateGoml(this.updateFn);
-                    this.coreObject.setSize(frame.clientWidth, frame.clientHeight);
+                    this.coreObject.setSize(canvasData.container.clientWidth, canvasData.container.clientHeight);
                     this.coreObject.setClearColor(0, 1);
                     break;
                 case "clearColor":
@@ -50980,6 +50991,10 @@ var default_1 = function (_BaseNode_1$default) {
                     break;
                 case "enableShadow":
                     this.coreObject.shadowMap.enabled = value;
+                    break;
+                case "gamma":
+                    this.coreObject.gammaInput = value;
+                    this.coreObject.gammaOutput = value;
                     break;
             }
         }
@@ -51763,6 +51778,9 @@ function default_1(value) {
                     geometry.attributes = attrsCorePool[index];
                 } else {
                     for (var key in tmp) {
+                        if (key === "needsUpdate") {
+                            continue;
+                        }
                         if (key === "index") {
                             geometry.setIndex(Array.isArray(tmp[key]) ? new THREE.Uint16Attribute(tmp[key], 1) : new THREE.BufferAttribute(tmp[key], 1));
                         } else {
@@ -51779,6 +51797,9 @@ function default_1(value) {
                         set: function set(bool) {
                             var index = attrsPool.indexOf(this);
                             for (var _key in this) {
+                                if (_key === "needsUpdate") {
+                                    continue;
+                                }
                                 if (_key === "index") {
                                     indexAttrsCorePool[index].array.set(this[_key]);
                                     indexAttrsCorePool[index].needsUpdate = true;
@@ -51810,6 +51831,8 @@ exports.default = default_1;
 },{"three":300}],312:[function(require,module,exports){
 "use strict";
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var THREE = require("three");
 var mtlPool = [];
 var mtlCorePool = [];
@@ -51823,8 +51846,11 @@ function default_1(value) {
         mtlPool.push(value);
         var param = Object.assign({}, value.value);
         for (var key in value.value) {
-            if (/(map|Map)$/.test(key)) {
-                var tmp = value.value[key];
+            if (!key) {
+                continue;
+            }
+            var tmp = value.value[key];
+            if ((typeof tmp === "undefined" ? "undefined" : _typeof(tmp)) === "object") {
                 var txr = void 0;
                 var index = txrPool.indexOf(tmp);
                 if (index !== -1) {
@@ -51844,9 +51870,12 @@ function default_1(value) {
                                 txr.image.src = tmp.src;
                             } else {
                                 txr = new THREE.Texture(tmp.src);
-                                txr.image.addEventListener("load", function () {
+                                txr.image.addEventListener("load", function (object) {
                                     this.needsUpdate = true;
-                                }.bind(txr), false);
+                                    if (object.onload) {
+                                        object.onload(this);
+                                    }
+                                }.bind(txr, tmp), false);
                             }
                             break;
                         case "canvas":
@@ -51856,6 +51885,9 @@ function default_1(value) {
                         case "video":
                             txr = new THREE.VideoTexture(tmp.src);
                             txr.format = THREE.RGBFormat;
+                            break;
+                        case "cube":
+                            txr = new THREE.CubeTextureLoader().load(tmp.src, tmp.onload);
                             break;
                     }
                     txr.minFilter = THREE.LinearFilter;
@@ -52470,7 +52502,7 @@ exports.default = SolufaInit;
 
 var Init_1 = require("./Init");
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Init_1.default("v0.5.0");
+exports.default = Init_1.default("v0.6.0");
 
 },{"./Init":316}],318:[function(require,module,exports){
 "use strict";
