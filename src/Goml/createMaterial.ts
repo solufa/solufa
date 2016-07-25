@@ -46,9 +46,12 @@ export default function( value ) {
               txr.image.src = tmp.src;
             } else {
               txr = new THREE.Texture( tmp.src );
-              txr.image.addEventListener( "load", function() {
+              txr.image.addEventListener( "load", function( object ) {
                 this.needsUpdate = true;
-              }.bind( txr ), false );
+                if ( object.onload ) {
+                  object.onload( this );
+                }
+              }.bind( txr, tmp ), false );
             }
             break;
 
@@ -63,7 +66,7 @@ export default function( value ) {
             break;
 
           case "cube":
-            txr = new THREE.CubeTextureLoader().load( tmp.src );
+            txr = new THREE.CubeTextureLoader().load( tmp.src, tmp.onload );
             break;
           }
 
