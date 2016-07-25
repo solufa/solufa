@@ -55,6 +55,10 @@ export default class extends BaseNode {
       this.updateFn = this.render.bind( this );
       update( this.updateFn );
 
+      if ( value.hidpi ) {
+        this.coreObject.setPixelRatio( window.devicePixelRatio );
+      }
+
       this.coreObject.setSize( frame.clientWidth, frame.clientHeight );
       this.coreObject.setClearColor( 0, 1 );
       break;
@@ -179,7 +183,7 @@ export default class extends BaseNode {
     };
 
     this.resizeEachVp = vp => {
-      vp.setSize( this.canvas.width, this.canvas.height );
+      vp.setSize( this.canvas.width / this.coreObject.getPixelRatio(), this.canvas.height / this.coreObject.getPixelRatio() );
     };
 
   }
