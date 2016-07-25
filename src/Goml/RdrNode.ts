@@ -49,17 +49,26 @@ export default class extends BaseNode {
       this.canvas = value.canvas = canvasData.canvas;
       window.frames[ window.frames.length - 1 ].addEventListener( "resize", this.resize.bind( this ), false );
 
+      if ( value.hidpi ) {
+        let ratio = 2||window.devicePixelRatio;
+        let scaleText = "scale(" + 1 / ratio + ") translate(" + 50 * ( 1 - ratio ) + "%," + 50 * ( 1 - ratio ) + "%)";
+
+        canvasData.container.style.width = ratio + "00%";
+        canvasData.container.style.height = ratio + "00%";
+        canvasData.container.style.transform = scaleText;
+        canvasData.container.style.webkitTransform = scaleText;
+      } else {
+        canvasData.container.style.width = "100%";
+        canvasData.container.style.height = "100%";
+      }
+
       this.coreObject = new THREE.WebGLRenderer( value );
       this.coreObject.autoClear = false;
 
       this.updateFn = this.render.bind( this );
       update( this.updateFn );
 
-      if ( value.hidpi ) {
-        this.coreObject.setPixelRatio( window.devicePixelRatio );
-      }
-
-      this.coreObject.setSize( frame.clientWidth, frame.clientHeight );
+      this.coreObject.setSize( canvasData.container.clientWidth, canvasData.container.clientHeight );
       this.coreObject.setClearColor( 0, 1 );
       break;
     case "clearColor":
@@ -183,7 +192,7 @@ export default class extends BaseNode {
     };
 
     this.resizeEachVp = vp => {
-      vp.setSize( this.canvas.width / this.coreObject.getPixelRatio(), this.canvas.height / this.coreObject.getPixelRatio() );
+      vp.setSize( this.canvas.width, this.canvas.height );
     };
 
   }

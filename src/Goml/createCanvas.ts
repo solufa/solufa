@@ -15,8 +15,6 @@ export default function createCanvas() {
   container.appendChild( resizeIframe );
 
   const canvas = document.createElement( "canvas" );
-  canvas.style.width = "100%";
-  canvas.style.height = "100%";
   container.appendChild( canvas );
 
   return { container, canvas };
