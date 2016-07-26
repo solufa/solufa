@@ -49,8 +49,8 @@ export default class extends BaseNode {
       this.canvas = value.canvas = canvasData.canvas;
       window.frames[ window.frames.length - 1 ].addEventListener( "resize", this.resize.bind( this ), false );
 
-      if ( value.hidpi ) {
-        let ratio = 2||window.devicePixelRatio;
+      if ( value.hidpi && window.devicePixelRatio > 1 ) {
+        let ratio = window.devicePixelRatio;
         let scaleText = "scale(" + 1 / ratio + ") translate(" + 50 * ( 1 - ratio ) + "%," + 50 * ( 1 - ratio ) + "%)";
 
         canvasData.container.style.width = ratio + "00%";
