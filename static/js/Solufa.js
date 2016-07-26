@@ -50965,8 +50965,8 @@ var default_1 = function (_BaseNode_1$default) {
                     frame.appendChild(canvasData.container);
                     this.canvas = value.canvas = canvasData.canvas;
                     window.frames[window.frames.length - 1].addEventListener("resize", this.resize.bind(this), false);
-                    if (value.hidpi) {
-                        var ratio = 2 || window.devicePixelRatio;
+                    if (value.hidpi && window.devicePixelRatio > 1) {
+                        var ratio = window.devicePixelRatio;
                         var scaleText = "scale(" + 1 / ratio + ") translate(" + 50 * (1 - ratio) + "%," + 50 * (1 - ratio) + "%)";
                         canvasData.container.style.width = ratio + "00%";
                         canvasData.container.style.height = ratio + "00%";
@@ -52502,7 +52502,7 @@ exports.default = SolufaInit;
 
 var Init_1 = require("./Init");
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Init_1.default("v0.6.0");
+exports.default = Init_1.default("v0.6.1");
 
 },{"./Init":316}],318:[function(require,module,exports){
 "use strict";
