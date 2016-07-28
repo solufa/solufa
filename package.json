@@ -1,6 +1,6 @@
 {
   "name": "solufa",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "homepage": "http://solufa.io/",
   "description": "Speed, Small and Scalable Web3D/VR library",
   "main": "./static/js/Solufa.js",
