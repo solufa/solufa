@@ -50968,8 +50968,8 @@ var default_1 = function (_BaseNode_1$default) {
                     if (value.hidpi && window.devicePixelRatio > 1) {
                         var ratio = window.devicePixelRatio;
                         var scaleText = "scale(" + 1 / ratio + ") translate(" + 50 * (1 - ratio) + "%," + 50 * (1 - ratio) + "%)";
-                        canvasData.container.style.width = ratio * 100 + "%";
-                        canvasData.container.style.height = ratio * 100 + "%";
+                        canvasData.container.style.width = ratio + "00%";
+                        canvasData.container.style.height = ratio + "00%";
                         canvasData.container.style.transform = scaleText;
                         canvasData.container.style.webkitTransform = scaleText;
                     } else {
@@ -52502,7 +52502,7 @@ exports.default = SolufaInit;
 
 var Init_1 = require("./Init");
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Init_1.default("v0.6.2");
+exports.default = Init_1.default("v0.6.1");
 
 },{"./Init":316}],318:[function(require,module,exports){
 "use strict";

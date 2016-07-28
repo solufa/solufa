@@ -53,8 +53,8 @@ export default class extends BaseNode {
         let ratio = window.devicePixelRatio;
         let scaleText = "scale(" + 1 / ratio + ") translate(" + 50 * ( 1 - ratio ) + "%," + 50 * ( 1 - ratio ) + "%)";
 
-        canvasData.container.style.width = ratio * 100 + "%";
-        canvasData.container.style.height = ratio * 100 + "%";
+        canvasData.container.style.width = ratio + "00%";
+        canvasData.container.style.height = ratio + "00%";
         canvasData.container.style.transform = scaleText;
         canvasData.container.style.webkitTransform = scaleText;
       } else {
