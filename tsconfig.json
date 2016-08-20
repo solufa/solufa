@@ -21,6 +21,7 @@
         "./src/Goml/createGeometry.ts",
         "./src/Goml/createMaterial.ts",
         "./src/Goml/createNode.ts",
+        "./src/Goml/createTexture.ts",
         "./src/Goml/EventNode.ts",
         "./src/Goml/getAsset.ts",
         "./src/Goml/GomlDoc.ts",
