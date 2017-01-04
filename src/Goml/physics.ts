@@ -1,3 +1,5 @@
+// 物理エンジン廃止
+
 import { updateS as update } from "../update";
 import * as THREE from "three";
 import generateFullPath from "../utils/generateFullPath";

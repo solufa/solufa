@@ -16,7 +16,6 @@ export default class extends BaseNode {
   private removeCanvasEvent;
   private renderEachVp;
   private resizeEachVp;
-  private arrayForGetVpByReverse = [];
 
   public appendHook( child ) {
     if ( child.tagName === "vp" ) {
@@ -47,6 +46,7 @@ export default class extends BaseNode {
       const canvasData = createCanvas();
       frame.appendChild( canvasData.container );
       this.canvas = value.canvas = canvasData.canvas;
+      // canvasをマウントしたDOMのリサイズを検知するためにcanvasData内部のiframeのリサイズを監視
       window.frames[ window.frames.length - 1 ].addEventListener( "resize", this.resize.bind( this ), false );
 
       if ( value.hidpi && window.devicePixelRatio > 1 ) {
@@ -107,6 +107,7 @@ export default class extends BaseNode {
     this.dispatchEvent( this.ownerDocument.createEvent( e ) );
   }
 
+  // canvasの左上を基準としたピクセル位置にあるsolufa elementを返す
   public pickElementByPixel( x: number, y: number ) {
     const vps = this.getVpByReverse();
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
@@ -118,6 +119,7 @@ export default class extends BaseNode {
     }
   }
 
+  // canvasの左上を基準とした比率位置にあるsolufa elementを返す
   public pickElementByRatio( x: number, y: number ) {
     const vps = this.getVpByReverse();
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
@@ -129,6 +131,7 @@ export default class extends BaseNode {
     }
   }
 
+  // 指定位置からrayを飛ばしてthree.jsの情報を返す
   public pickPointByPixel( x: number, y: number, element ) {
     const vps = this.getVpByReverse();
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
@@ -140,6 +143,7 @@ export default class extends BaseNode {
     }
   }
 
+  // 0-1の比率で指定した位置からrayを飛ばしてthree.jsの情報を返す
   public pickPointByRatio( x: number, y: number, element ) {
     const vps = this.getVpByReverse();
     for ( let i = 0, l = vps.length, vp; i < l; i++ ) {
@@ -197,6 +201,7 @@ export default class extends BaseNode {
 
   }
 
+  // vpsを無視して全ての子孫vp elementにcallbackを適用する
   private traverseVp( callback ) {
     this.childNodes.forEach( child => {
       if ( child.tagName === "vps" ) {
@@ -207,9 +212,10 @@ export default class extends BaseNode {
     });
   }
 
+  // 手前に描画されるviewportから順に並べた配列を返す
+  // vpが複数重なっていてもイベントが起こった位置において最も手前のvpを最小限の試行回数で特定できる
   private getVpByReverse() {
-    const vpList = this.arrayForGetVpByReverse;
-    vpList.length = 0;
+    const vpList = [];
 
     for ( let i = this.childNodes.length - 1, child; i > - 1; i-- ) {
       child = this.childNodes[ i ];

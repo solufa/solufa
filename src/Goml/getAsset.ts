@@ -1,3 +1,6 @@
+// solufa用にトランスパイルされた3Dモデルファイルのローダー
+// 実用に耐えない、仕様が不安定なので廃止すべき
+
 import generateFullPath from "../utils/generateFullPath";
 import getJson from "../utils/getJson";
 

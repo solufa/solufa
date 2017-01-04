@@ -1,3 +1,5 @@
+// solufa element class
+
 import * as THREE from "three";
 import BaseNode from "./BaseNode";
 import createMaterial from "./createMaterial";
@@ -6,6 +8,8 @@ import errorMessage from "../utils/errorMessage";
 import { setCoreObject as setObject } from "./adminCoreObject";
 import RdrNode from "./RdrNode";
 import VpNode from "./VpNode";
+
+// 以下二つは廃止予定
 import physics from "./physics";
 import getAsset from "./getAsset";
 
@@ -16,6 +20,7 @@ class GomlNode extends BaseNode {
   private _lightHelper;
   private _cameraHelper;
 
+  // coreObject = three.js object
   get coreObject() {
     return this._coreObject;
   }
@@ -102,6 +107,7 @@ class GomlNode extends BaseNode {
     }
   }
 
+  // translate系は現在のpositionとrotateが基準なのでstyleで表現できない
   public translate( x, y, z ) {
     tmpVec.set( x, y, z );
     let length = tmpVec.length();
@@ -122,6 +128,7 @@ class GomlNode extends BaseNode {
 
 }
 
+// three.js lightクラスの省略名を保持
 let lightType = {};
 for ( let key in THREE ) {
   if ( /.+?Light$/.test( key ) ) {
@@ -132,6 +139,7 @@ for ( let key in THREE ) {
 
 export default {
 
+  // 仕様が不安定なので廃止予定
   asset: class extends GomlNode {
 
     public setAttrHook( name: string, value ): void {
@@ -288,6 +296,7 @@ export default {
     }
   },
 
+  // あまり覚えてないけどモデルローダーで使う予定だったはず。asset elementとともに廃止
   meshes: class extends GomlNode {
 
     public setAttrHook( name: string, value ): void {
@@ -328,6 +337,7 @@ export default {
     }
   },
 
+  // 3D用のdivとして扱える
   obj: class extends GomlNode {
 
     constructor( gomlDoc ) {

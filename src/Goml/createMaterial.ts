@@ -1,15 +1,30 @@
+// solufa material object <-> three.js material instance
+
+/*
+  solufa material object
+  http://solufa.io/document/?category=object&article=material
+*/
+
 import * as THREE from "three";
 
+// solufa material objectのプール
 const mtlPool = [];
+
+// three.js material instanceのプール
 const mtlCorePool = [];
 
+// solufa texture object
+// http://solufa.io/document/?category=object&article=texture
 const txrPool = [];
+
+// three.js texture instance
 const txrCorePool = [];
 
 export default function( value ) {
   const idx = mtlPool.indexOf( value );
 
   if ( idx !== -1 ) {
+    // 複数のmeshでthreejs material instanceを共有したい
     return mtlCorePool[ idx ];
   } else {
     mtlPool.push( value );
@@ -17,7 +32,7 @@ export default function( value ) {
     const param = Object.assign( {}, value.value );
 
     for ( let key in value.value ) {
-      if ( !key ) { // todo: hasOwn...
+      if ( !value.value.hasOwnProperty( key ) ) {
         continue;
       }
 

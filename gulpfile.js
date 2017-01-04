@@ -26,7 +26,7 @@ gulp.task( "default", function() {
     .pipe(webserver({
       host: '0.0.0.0',//スマホからIPアドレスでアクセスできる
       livereload: true,
-      open: "http://0.0.0.0:8000/samples/1000box.html"
+      open: "http://localhost:8000/samples/1000box.html"
     }));
   bundle();
 });

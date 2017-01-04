@@ -1,13 +1,19 @@
 /// <reference path="./refs/bundle.ts" />
 
 "use strict";
-import "babel-polyfill";
 
+// 消去予定　内部では使ってない
 import * as m from "mithril";
+// WebGL library
 import * as three from "three";
 
+// window.documentのmock
 import GomlDoc from "./Goml/GomlDoc";
+
+// rdrを更新する直前に呼び出す関数を登録させる
 import { updateS as update } from "./update";
+
+// 消去予定
 import physics from "./Goml/physics";
 
 const SolufaInit = ( version: string ) => {
@@ -15,8 +21,10 @@ const SolufaInit = ( version: string ) => {
   const canvas = document.createElement( "canvas" );
   const hasGl = (<any>window).WebGLRenderingContext && ( canvas.getContext( "webgl" ) || canvas.getContext( "experimental-webgl" ) );
 
+  // HTMLとGOMLの構築待機関数のコールバックをキャッシュ
   let waitLoadFn = [];
 
+  // HTMLとGOMLの構築待機関数
   function Solufa( callback: ( m: any ) => void, error: () => void ) {
     if ( !hasGl ) {
       error();
@@ -44,18 +52,19 @@ const SolufaInit = ( version: string ) => {
   (<any>Solufa).document = doc;
   (<any>Solufa).version = version;
   (<any>Solufa)._S = (<any>window).S;
+
+  // 消去予定
   (<any>Solufa).initPhysics = physics.init;
+
+  // jQuery.noConflictと同じ役割
   (<any>Solufa).noConflict = function() {
-     (<any>window).S = (<any>Solufa)._S;
+    (<any>window).S = (<any>Solufa)._S;
   };
 
-  m.deps({
-    XMLHttpRequest: window.XMLHttpRequest,
-    cancelAnimationFrame: window.cancelAnimationFrame,
+  // tslintのために書き換えた
+  m.deps( Object.assign({}, window, {
     document: doc,
-    location: window.location,
-    requestAnimationFrame: window.requestAnimationFrame,
-  });
+  }));
 
   (<any>window).Solufa = (<any>window).S = Solufa;
   (<any>window).THREE = three;

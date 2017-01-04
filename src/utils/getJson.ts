@@ -1,3 +1,5 @@
+// getAssetでしか使ってないので廃止してよさそう
+
 export default function( url: string, fn ) {
 
   const xhr = new XMLHttpRequest;

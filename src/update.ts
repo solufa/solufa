@@ -1,5 +1,9 @@
+// rdrの更新
 const updateGomlList = [];
+
+// rdrの更新直前にユーザーが呼ばせたい関数
 const updateSList = [];
+
 let pastTime = 0;
 let delta;
 let i;

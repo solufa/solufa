@@ -3,6 +3,7 @@ export default function createCanvas() {
   container.style.position = "relative";
   container.style.height = "100%";
 
+  // resizeイベントに依存せずにcanvasをマウントしたHTML elemのリサイズを検知するためのiframe
   const resizeIframe = document.createElement( "iframe" );
   resizeIframe.style.width = "100%";
   resizeIframe.style.height = "100%";

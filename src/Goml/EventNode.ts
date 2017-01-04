@@ -1,9 +1,13 @@
+// GomlDocとsolufa elementの基幹クラス
+
 class EventNode {
   public childNodes;
   public parentNode;
   public tagName;
   public _allHandlerTypeList = []; // NodeList.tsで使う
 
+  // canvasに必要最小限のイベントハンドラを登録するためのややこしい仕組み
+  // 自分の子孫要素全てと子要素のイベントタイプを保持しておく
   private handlerList = {};
   private handlerTypeList = [];
   private childHandlerTypeList = []; // [ type, type,,,]

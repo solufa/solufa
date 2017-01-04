@@ -1,16 +1,51 @@
+// solufa geometry object <-> three.js geometry instance
+
+/*
+  solufa geometry object
+  http://solufa.io/document/?category=object&article=geometry
+  
+  {
+    type: three.jsのgeometryクラス名
+    value: [], three.jsのgeometryコンストラクタ引数
+    attrs: vertex attribute object
+  }
+
+  vertex attributes object
+  将来的にgeometry objectにもneedsUpdateを与えるつもりだった
+  {
+    vertexshaderに送る値のリスト
+    position: [],
+    index: []
+    etc...
+
+    setter getter needsUpdate: boolean solufa内部で付加
+  }
+
+*/
+
 import * as THREE from "three";
 
+// solufa geometry objectのプール
 const geoPool = [];
+
+// three.js geometry instanceのプール
 const geoCorePool = [];
 
+// vertex attributes object
 const attrsPool = [];
+
+// three.js geometry.attributes
 const attrsCorePool = [];
+
+// three.js geometry.attributes.index
+// three.jsが他のgeometry.attributesとは違う管理をしているので分けた
 const indexAttrsCorePool = [];
 
 export default function( value ) {
 
   const idx = geoPool.indexOf( value );
   if ( idx !== -1 ) {
+    // 複数のmeshでthreejs geometryインスタンスを共有したい
     return geoCorePool[ idx ];
   } else {
     geoPool.push( value );

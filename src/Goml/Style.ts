@@ -267,6 +267,7 @@ class Style {
   }
   set opacity( opacity: number ) {
     this._opacity = opacity;
+    // 子孫要素全てに反映させる
     traverse( this.target, applyOpacity, opacity );
   }
 

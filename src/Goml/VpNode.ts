@@ -10,6 +10,7 @@ export default class extends BaseNode {
   private raycaster = new THREE.Raycaster;
   private tmpVec = new THREE.Vector3;
 
+  // canvas上の座標に自分自身が存在するかどうか
   public _isCollision( offsetX, offsetY, isRatio ): boolean {
     let ratioX = isRatio ? offsetX : offsetX / this.width;
     let ratioY = isRatio ? offsetY : offsetY / this.height;
@@ -20,6 +21,7 @@ export default class extends BaseNode {
       && ratioY > ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) );
   }
 
+  // 指定位置にあるsolufa elementにイベントを発行する
   public _triggerEvent( offsetX, offsetY, e ) {
 
     if ( this.scene._allHandlerTypeList.indexOf( e.type ) !== -1 ) {
@@ -30,6 +32,7 @@ export default class extends BaseNode {
     }
   }
 
+  // canvasの左上を基準としたピクセル位置にあるsolufa elementを返す
   public pickElementByPixel( x: number, y: number ) {
     const ratioX = ( x - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width );
     const ratioY = ( y - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
@@ -37,6 +40,7 @@ export default class extends BaseNode {
     return this.pickElementByRatio( ratioX, ratioY );
   }
 
+  // canvasの左上を基準とした比率位置にあるsolufa elementを返す
   public pickElementByRatio( x: number, y: number ) {
     const ratioX = 2 * x - 1;
     const ratioY = -2 * y + 1;
@@ -56,6 +60,7 @@ export default class extends BaseNode {
     }
   }
 
+  // 指定位置からrayを飛ばしてthree.jsの情報を返す
   public pickPointByPixel( x: number, y: number, element ) {
     const ratioX = ( x - this.getAttribute( "left" ) * this.width ) / ( this.getAttribute( "width" ) * this.width );
     const ratioY = ( y - ( 1 - this.getAttribute( "bottom" ) - this.getAttribute( "height" ) ) * this.height ) /
@@ -71,6 +76,7 @@ export default class extends BaseNode {
     return this.raycaster.intersectObject( ( element && element.coreObject ) || this.scene.coreObject, true )[ 0 ];
   }
 
+  // solufa elementのcanvas上における座標を返す
   public getElementOffsetFromCanvas( element ) {
     let matrix = element.coreObject.matrixWorld.elements;
     this.tmpVec.set( matrix[ 12 ], matrix[ 13 ], matrix[ 14 ] ).project( this.cameraObject );

@@ -1,3 +1,5 @@
+// window.documentのsolufa mock
+
 import createNode from "./createNode";
 import EventNode from "./EventNode";
 import BaseNode from "./BaseNode";
@@ -5,6 +7,7 @@ import idList from "./adminId";
 import { getGomlElement as getElement } from "./adminCoreObject";
 import getElementsByClassName from "../utils/getElementsByClassName";
 
+// HTML Event objectのmock
 class NewEvent {
   public cancelBubble = false;
   public cancelImmediateBubble = false;
@@ -59,6 +62,7 @@ class NewEvent {
   }
 };
 
+// m.redrawとかでMithrilがtextNodeを生成することがある
 class TextNode extends BaseNode {
   public textContent: string;
   public coreObject = {};
@@ -76,13 +80,13 @@ class GomlDoc extends EventNode {
   public childNodes;
   public createEvent( type: string ) {
     return new NewEvent( type );
-  };
+  }
 
   public createElement( tagName: string ) {
     return createNode( tagName, this );
   }
 
-  public createTextNode( text: string ) {// m.redrawとかでMithrilがtextNodeを生成することがある
+  public createTextNode( text: string ) {
     return new TextNode( text, this );
   }
 

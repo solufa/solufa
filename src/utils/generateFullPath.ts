@@ -1,3 +1,5 @@
+// 廃止予定のgetAssetとphysicsでのみ使われてるのでこれも削除してよさそう
+
 export default function( url ) {
 
   if ( !/^http/.test( url ) ) {

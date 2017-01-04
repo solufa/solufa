@@ -3,6 +3,9 @@ import EventNode from "./EventNode";
 import idList from "./adminId";
 import getElementsByClassName from "../utils/getElementsByClassName";
 
+// 全てのsolufa element の基幹クラス
+// HTML elementのAPIをトレース
+// GomlDocもEventNodeを継承する
 class BaseNode extends EventNode {
 
   public childNodes = [];
